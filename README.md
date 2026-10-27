@@ -14,8 +14,7 @@ números entre colchetes, `[1]`, `[2]`, que levam ao trecho citado. Isso o torna
 o que ela não diz, juntar duas fontes numa conclusão que nenhuma delas tira, ou
 preencher o que falta com conhecimento geral.
 
-O NotebookLM tem três lugares onde se escreve um prompt, e eles não se
-comunicam:
+O NotebookLM tem três lugares onde se escreve um prompt:
 
 | Campo | Para quê | Limite |
 |---|---|---|
@@ -23,11 +22,35 @@ comunicam:
 | Chat | a pergunta de cada vez | 4.000 caracteres |
 | Painel Studio (relatórios, áudio, guias) | o pedido de um artefato | 5.000 caracteres |
 
-O ponto que organiza a Oficina: **as instruções do chat não chegam ao painel
-Studio.** Uma regra escrita só lá vale para as respostas do chat, mas não para
-um relatório ou um áudio gerado no Studio. Por isso cada prompt destinado ao
-Studio leva consigo as próprias regras, e cada página mostra para onde vai o
-prompt que gera e quanto do limite ele ocupa.
+O ponto que organiza a Oficina: **as instruções personalizadas do chat não
+são herdadas pelo Studio.** Uma regra escrita só lá vale para as respostas do
+chat, mas não entra sozinha num relatório ou num áudio gerado no Studio.
+
+Há dois caminhos para levar um pedido ao Studio:
+
+- **Direto:** colar o prompt no campo de personalização do próprio artefato.
+- **Pelo chat:** pedir no chat que gere um artefato no Studio seguindo tal ou
+  qual orientação. O chat escreve o comando e o entrega ao Studio. Funciona,
+  mas quem redige o comando final é o modelo, não você: as regras só chegam
+  se ele as copiar para dentro desse comando.
+
+Por isso cada prompt destinado ao Studio leva consigo as próprias regras, e
+cada página mostra para onde vai o prompt que gera e quanto do limite ele
+ocupa.
+
+### Conferir o que o Studio recebeu
+
+Todo artefato do Studio guarda o pedido que o gerou. No menu de três pontos
+ao lado do artefato, a opção **"Ver comando e fontes"** mostra o texto exato
+do comando usado e a lista de fontes consultadas.
+
+Parece detalhe, mas é o que permite trabalhar com controle:
+
+- quando o pedido passou pelo chat, é ali que se vê o que o chat de fato
+  escreveu, e se as regras foram junto ou ficaram pelo caminho;
+- a lista de fontes mostra se o artefato usou todas as fontes do caderno ou
+  só as que estavam marcadas no momento;
+- um comando que deu bom resultado pode ser copiado dali e reaproveitado.
 
 ## As páginas
 
