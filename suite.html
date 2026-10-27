@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suite de Corpus — Oficina NotebookLM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f0f4f8;padding:24px 16px 48px;min-height:100vh}
+.suite{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+.page-header{padding:0 4px 4px}
+.page-header h1{font-size:20px;font-weight:500;color:#1f2937;letter-spacing:-.3px}
+.page-header p{font-size:11px;color:#6b7280;margin-top:4px;letter-spacing:.5px;text-transform:uppercase}
+
+.card{background:#ffffff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);overflow:hidden;border-left:5px solid var(--accent);transition:border-color .25s}
+.card.sp{--accent:#1a73e8}
+.card.na{--accent:#15803d}
+.card.rf{--accent:#d97706}
+
+.card-header{display:flex;align-items:center;padding:16px 18px;gap:14px}
+.icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--tint);transition:background .25s}
+.card.sp .icon{--tint:#e8f0fe}
+.card.na .icon{--tint:#e6f4ea}
+.card.rf .icon{--tint:#fef3c7}
+.icon svg{width:20px;height:20px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke:var(--accent);transition:stroke .25s}
+
+.card-info{flex:1;min-width:0}
+.eyebrow{display:block;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:2px;transition:color .25s}
+.card-info h2{font-size:14px;font-weight:600;color:#111827;margin:0}
+.card-info p{font-size:12px;color:#6b7280;margin:3px 0 0}
+
+.btn-copy{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:8px 18px;border:none;border-radius:100px;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap;transition:background .25s,filter .15s;flex-shrink:0;line-height:1}
+.btn-copy:hover{filter:brightness(.9)}
+.btn-copy.ok{filter:brightness(.82)}
+.btn-copy svg{width:14px;height:14px;flex-shrink:0}
+
+.divider{height:1px;background:#f3f4f6;margin:0 18px}
+
+.chips{display:flex;gap:8px;padding:12px 18px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:7px 16px;border-radius:100px;border:1.5px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;transition:all .15s;line-height:1}
+.chip svg{width:13px;height:13px;flex-shrink:0;opacity:.85}
+.chip:hover{border-color:var(--c);color:var(--c);background:var(--ct)}
+.chip.on{border-color:var(--c);background:var(--ct);color:var(--c)}
+
+.hint{padding:0 18px 12px;font-size:12.5px;color:var(--accent);font-weight:500;transition:color .25s}
+
+.rf-candidate{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:12px;align-items:end;margin:0 18px 14px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:7px;background:#fafafa}
+.rf-candidate[hidden]{display:none}
+.rf-candidate-copy label{display:block;margin:0 0 3px;font-size:12px;font-weight:650;color:#374151}
+.rf-candidate-copy p{font-size:11.5px;line-height:1.45;color:#6b7280}
+.rf-candidate input{width:100%;min-width:0;padding:8px 10px;text-align:center;font-variant-numeric:tabular-nums}
+.rf-candidate input.invalid{border-color:#b91c1c!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
+.rf-candidate-error{grid-column:1/-1;min-height:16px;margin-top:-4px;font-size:11.5px;font-weight:600;color:#b91c1c}
+
+.body{position:relative}
+.ptext{font-family:'Roboto Mono',ui-monospace,monospace;font-size:12px;line-height:1.9;color:#374151;padding:16px 18px;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:hidden}
+.ptext.open{max-height:6000px}
+.fade-out{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff);pointer-events:none}
+.fade-out.hide{display:none}
+
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 14px}
+.char-label{font-size:11px;color:#9ca3af;font-variant-numeric:tabular-nums}
+.medidor{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
+.destino{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;white-space:nowrap}
+.barra{position:relative;flex:1;max-width:120px;height:3px;border-radius:2px;background:#e5e7eb;overflow:hidden}
+.barra i{position:absolute;top:0;bottom:0;left:0;width:0;background:#2a5a4c;transition:width .2s}
+.medidor.excesso .barra i{background:#b91c1c}
+.medidor.excesso .char-label{color:#b91c1c}
+.btn-expand{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0;line-height:1;transition:color .25s}
+.btn-expand:hover{text-decoration:underline}
+.btn-expand svg{width:14px;height:14px;stroke:var(--accent);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:stroke .25s}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.nlm-nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;padding:0 16px;height:40px;background:#080812;border-bottom:1px solid #1a1a30;font:500 11px/1 ui-monospace,monospace;gap:0;flex-shrink:0}
+.nlm-nav a{color:#44445e;text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .12s,background .12s}
+.nlm-nav a:hover{color:#9090c0;background:#14142a}
+.nlm-nav .nlm-active{color:#a78bfa!important;background:#1a143a!important}
+.nlm-nav .nlm-home{color:#33334a;padding:5px 12px 5px 2px;margin-right:10px;border-right:1px solid #1a1a30;letter-spacing:.05em}
+.nlm-nav .nlm-home:hover{color:#6060a0;background:none!important}
+</style>
+<style>:root {
+  --suite-ink: #17243a;
+  --suite-ink-2: #314158;
+  --suite-muted: #657186;
+  --suite-paper: #f6f3ec;
+  --suite-sheet: #fffdf8;
+  --suite-line: #d8d2c5;
+  --suite-accent: #245b78;
+  --suite-accent-soft: #e4eef1;
+  --suite-success: #31715b;
+  --suite-danger: #a7443d;
+  --suite-radius: 8px;
+  --suite-shadow: 0 10px 30px rgba(25, 36, 48, .07);
+}
+
+html { color-scheme: light; scroll-behavior: smooth; }
+body {
+  background: var(--suite-paper) !important;
+  color: var(--suite-ink) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  padding: 0 1rem 3rem !important;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(23,36,58,.025) 1px, transparent 1px);
+  background-size: 100% 32px;
+}
+
+.suite-shell { max-width: 1180px; margin: 0 auto 2.5rem; }
+.suite-nav {
+  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  border-bottom: 1px solid var(--suite-line); color: var(--suite-ink);
+}
+.suite-brand { display: flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; }
+.suite-brand-mark {
+  width: 32px; height: 36px; display: grid; place-items: center; border: 1px solid var(--suite-ink);
+  border-radius: 2px 7px 7px 2px; font-family: Georgia, serif; font-weight: 700; font-size: .82rem;
+  box-shadow: inset 4px 0 0 var(--suite-accent-soft);
+}
+.suite-brand strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+.suite-brand small { display: block; margin-top: 2px; color: var(--suite-muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.suite-links { display: flex; align-items: center; gap: .25rem; }
+.suite-links a, .suite-menu summary {
+  color: var(--suite-ink-2); text-decoration: none; padding: .55rem .7rem; border-radius: 5px;
+  font-size: .78rem; font-weight: 650; cursor: pointer; list-style: none;
+}
+.suite-links a:hover, .suite-links a:focus-visible, .suite-menu summary:hover { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu { position: relative; }
+.suite-menu summary::-webkit-details-marker { display: none; }
+.suite-menu[open] summary { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu-panel {
+  position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; min-width: 240px; padding: .45rem;
+  background: var(--suite-sheet); border: 1px solid var(--suite-line); border-radius: var(--suite-radius); box-shadow: var(--suite-shadow);
+}
+.suite-menu-panel a { display: block; }
+.suite-context { display: flex; align-items: center; gap: .65rem; margin-top: 1rem; color: var(--suite-muted); font-size: .75rem; }
+.suite-context span { color: var(--suite-accent); font-weight: 750; text-transform: uppercase; letter-spacing: .07em; }
+
+/* Shared form grammar; original selectors, IDs and behavior remain untouched. */
+.container, .wrap, .suite { width: min(100%, 980px) !important; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
+.header, .wrap > header, .page-header { text-align: left !important; margin-bottom: 1.75rem !important; padding: 0 !important; border: 0 !important; }
+.header h1, .wrap > header h1, .page-header h1 {
+  color: var(--suite-ink) !important; font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.65rem) !important; font-weight: 600 !important; letter-spacing: -.035em !important;
+}
+.header p, .subtitle, .page-header p { color: var(--suite-muted) !important; max-width: 720px; line-height: 1.6 !important; }
+.card, .wrap > section, #output-section {
+  background: var(--suite-sheet) !important; color: var(--suite-ink) !important; border: 1px solid var(--suite-line) !important;
+  border-radius: var(--suite-radius) !important; box-shadow: var(--suite-shadow) !important;
+}
+.card { margin-bottom: 1rem; }
+.wrap > section, #output-section { padding: 1.5rem !important; margin-bottom: 1rem !important; }
+label, .section-label, .exhibit-tag { color: var(--suite-ink-2) !important; letter-spacing: .045em; }
+input, textarea, select {
+  background: #fff !important; color: var(--suite-ink) !important; border: 1px solid #bfc5ca !important;
+  border-radius: 6px !important; min-height: 44px; font: inherit !important;
+}
+input:hover, textarea:hover, select:hover { border-color: #82909a !important; }
+input:focus, textarea:focus, select:focus { border-color: var(--suite-accent) !important; box-shadow: 0 0 0 3px rgba(36,91,120,.16) !important; outline: none !important; }
+button, [role="button"], .tab, .pill, .template-btn { min-height: 40px; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid rgba(36,91,120,.28) !important; outline-offset: 2px; }
+.generate-btn, button.generate, .btn-copy {
+  background: var(--suite-accent) !important; color: white !important; border-color: var(--suite-accent) !important;
+  border-radius: 6px !important; box-shadow: none !important;
+}
+.generate-btn:hover, button.generate:hover, .btn-copy:hover { background: #194862 !important; transform: translateY(-1px); }
+.generate-btn:disabled { background: #929ba3 !important; border-color: #929ba3 !important; cursor: not-allowed; }
+.copy-btn, button.copy, .btn-expand, .lang-btn { border-radius: 5px !important; }
+.output-box, #prompt-output, .ptext {
+  background: #f4f1e9 !important; color: #26364a !important; border-color: var(--suite-line) !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important; line-height: 1.7 !important;
+}
+.mode-card, .template-btn, .tab, .toggle-row, .guardrail-detail { border-radius: 6px !important; box-shadow: none !important; }
+.mode-card:hover, .template-btn:hover, .tab:hover { transform: none !important; border-color: var(--suite-accent) !important; }
+.mode-card.active, .template-btn.active, .tab.active { border-color: var(--suite-accent) !important; background: var(--suite-accent-soft) !important; color: var(--suite-ink) !important; }
+.guardrail-badge { border-radius: 4px !important; }
+.lang-switcher, .lang-switch { float: right; }
+.case-no, .eyebrow { color: var(--suite-accent) !important; }
+.suite .card { border-left: 4px solid var(--accent) !important; overflow: hidden; }
+.suite .card-header { padding: 1.25rem 1.35rem; }
+.suite .ptext { border: 0 !important; }
+.suite .fade-out { background: linear-gradient(to bottom, rgba(255,253,248,0), var(--suite-sheet)) !important; }
+
+@media (max-width: 700px) {
+  body { padding-inline: .75rem !important; }
+  .suite-nav { min-height: 58px; }
+  .suite-brand small, .suite-links > a:not(:first-child) { display: none; }
+  .suite-menu-panel { position: fixed; top: 62px; left: .75rem; right: .75rem; }
+  .suite-context { align-items: flex-start; }
+  .card, .wrap > section, #output-section { padding: 1rem !important; }
+  .suite .card { padding: 0 !important; }
+  .card-header { align-items: flex-start !important; flex-wrap: wrap; }
+  .card-header .btn-copy { width: 100%; justify-content: center; }
+  .rf-candidate { grid-template-columns: 1fr; }
+  .rf-candidate-error { grid-column:1; }
+  .exhibits { grid-template-columns: 1fr !important; }
+  .output-meta, .output-bar { gap: .75rem; flex-wrap: wrap; }
+  button, .generate-btn, button.generate { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+</style>
+<script>document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[onclick]:not(button):not(a)').forEach((el) => {
+    if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
+  });
+  document.querySelectorAll('.suite-menu-panel a').forEach((link) => {
+    if (link.href === location.href) link.setAttribute('aria-current', 'page');
+  });
+});
+</script>
+<style id="oficina-unificado">
+/* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
+   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+.nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
+.nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
+.nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
+.nlm-nav .nlm-active{color:var(--suite-accent,#245b78)!important;border-bottom-color:var(--suite-accent,#245b78)!important;background:none!important;font-weight:600}
+.nlm-nav .nlm-home{font:600 15px/1 Georgia,'Times New Roman',serif!important;color:var(--suite-ink,#17243a)!important;border-right:1px solid var(--suite-line,#d8d2c5)!important;padding:6px 14px 6px 2px!important;margin-right:8px!important;letter-spacing:0!important}
+.nlm-nav .nlm-clear{margin-left:auto;background:none;border:1px solid transparent;border-radius:5px;padding:5px 10px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-muted,#657186);cursor:pointer;min-height:0}
+.nlm-nav .nlm-clear:hover{color:var(--suite-ink,#17243a);border-color:var(--suite-line,#d8d2c5)}
+.nlm-nav .nlm-clear.armado{color:var(--suite-danger,#a7443d);border-color:var(--suite-danger,#a7443d)}
+/* Laboratório */
+.template-btn,.template-btn.inter{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important;color:var(--suite-ink)!important}
+.template-btn.active,.template-btn.inter.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.section-label.interdisciplinar{color:var(--suite-ink-2)!important}
+.section-label::after,.section-label.interdisciplinar::after{background:var(--suite-line)!important}
+.template-btn .format-tag{background:transparent!important;color:var(--suite-accent)!important;border-color:var(--suite-line)!important}
+.container{margin-top:1.5rem!important}
+.toggle-row{background:var(--suite-sheet)!important}
+.char-count{background:transparent!important;padding-left:0!important;color:var(--suite-muted)!important}
+.medidor:not(.excesso) .barra i{background:var(--suite-accent)!important}
+.toggle-row.on{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.toggle-switch.on{background:var(--suite-accent)!important}
+.generate-btn{box-shadow:none!important}
+/* Studio */
+.mode-card{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important}
+.mode-card.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+/* Dossiê: rótulos e botões em sans; só o prompt gerado fica monoespaçado */
+.wrap{--mono:Inter,ui-sans-serif,system-ui,sans-serif}
+/* Suite: um só acento, sem faixa colorida por cartão */
+.card.sp,.card.na,.card.rf{--accent:var(--suite-accent)!important;--tint:var(--suite-accent-soft)!important;border-left:1px solid var(--suite-line)!important}
+.card .icon{--tint:var(--suite-accent-soft)!important}
+.suite{margin-top:1.5rem!important}
+.chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
+.hint{color:var(--suite-ink-2)!important}
+</style>
+</head>
+<body>
+<nav class="nlm-nav"><a class="nlm-home" href="index.html">Oficina ↗</a><a href="suite.html" class="nlm-active">Suite</a><a href="dossie.html">Dossiê</a><a href="lab.html">Lab</a><a href="studio.html">Studio</a></nav>
+
+
+
+<div class="suite">
+
+  <div class="page-header">
+    <h1>NotebookLM Prompt Suite</h1>
+    <p>Notebooklm · Prompt Suite</p>
+  </div>
+
+  <div class="card sp" id="c-sp">
+    <div class="card-header">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="card-info">
+        <span class="eyebrow">Passo 1 · uma vez</span>
+        <h2>System prompt canônico</h2>
+        <p>Cole uma vez no campo <strong>Personalizar</strong> do notebook — define o comportamento base para todas as conversas</p>
+      </div>
+      <button class="btn-copy" onclick="cp('sp',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+    <div class="divider"></div>
+    <div class="body">
+      <div class="ptext" id="sp-t"></div>
+      <div class="fade-out" id="sp-f"></div>
+    </div>
+    <div class="card-footer">
+      <div class="medidor" id="sp-m">
+        <span class="destino" id="sp-d"></span>
+        <span class="barra"><i id="sp-b"></i></span>
+        <span class="char-label" id="sp-c"></span>
+      </div>
+      <button class="btn-expand" id="sp-xb" onclick="tog('sp',this)">
+        <svg id="sp-ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        ver tudo
+      </button>
+    </div>
+  </div>
+
+  <div class="card na" id="c-na">
+    <div class="card-header">
+      <div class="icon">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="card-info">
+        <span class="eyebrow">Passo 2 · no chat</span>
+        <h2>Notebook Source Analyser</h2>
+        <p>Cole no <strong>chat</strong> do notebook — sozinho já é suficiente para auditar o corpus completo</p>
+      </div>
+      <button class="btn-copy" onclick="cp('na',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+    <div class="divider"></div>
+    <div class="body">
+      <div class="ptext" id="na-t"></div>
+      <div class="fade-out" id="na-f"></div>
+    </div>
+    <div class="card-footer">
+      <div class="medidor" id="na-m">
+        <span class="destino" id="na-d"></span>
+        <span class="barra"><i id="na-b"></i></span>
+        <span class="char-label" id="na-c"></span>
+      </div>
+      <button class="btn-expand" id="na-xb" onclick="tog('na',this)">
+        <svg id="na-ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        ver tudo
+      </button>
+    </div>
+  </div>
+
+  <div class="card rf" id="c-rf">
+    <div class="card-header">
+      <div class="icon" id="rf-icon">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      </div>
+      <div class="card-info">
+        <span class="eyebrow">Passo 3 · opcional</span>
+        <h2>Refinamento pós-Analyser</h2>
+        <p>Cole no <strong>chat</strong> após o Analyser. Semear Discussões pode ser seguido por Auditar candidato.</p>
+      </div>
+      <button class="btn-copy" onclick="cp('rf',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar
+      </button>
+    </div>
+    <div class="divider"></div>
+    <div class="chips" id="rf-chips"></div>
+    <div class="hint" id="rf-hint"></div>
+    <div class="rf-candidate" id="rf-candidate" hidden>
+      <div class="rf-candidate-copy">
+        <label for="rf-candidate-input">Candidato do Refinamento 4A</label>
+        <p id="rf-candidate-help">Informe o número do candidato gerado na mesma conversa do NotebookLM.</p>
+      </div>
+      <input id="rf-candidate-input" type="number" min="1" max="5" step="1" inputmode="numeric" aria-describedby="rf-candidate-help rf-candidate-error">
+      <p class="rf-candidate-error" id="rf-candidate-error" role="alert" aria-live="polite"></p>
+    </div>
+    <div class="divider"></div>
+    <div class="body">
+      <div class="ptext" id="rf-t"></div>
+      <div class="fade-out" id="rf-f"></div>
+    </div>
+    <div class="card-footer">
+      <div class="medidor" id="rf-m">
+        <span class="destino" id="rf-d"></span>
+        <span class="barra"><i id="rf-b"></i></span>
+        <span class="char-label" id="rf-c"></span>
+      </div>
+      <button class="btn-expand" id="rf-xb" onclick="tog('rf',this)">
+        <svg id="rf-ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        ver tudo
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SP=`<instrucoes_notebook>
+
+<papel>
+Você responde sobre as fontes carregadas neste notebook. Sua tendência natural é preencher lacunas e completar respostas com conhecimento geral. Resista ativamente a isso.
+</papel>
+
+<aviso>
+Este sistema gera alucinações factuais, interpretações equivocadas e erros de resumo mesmo quando ancorado em fontes. Os guardrails abaixo não são opcionais.
+</aviso>
+
+<regra_de_ouro>
+A resposta abre com a lista das fontes usadas. No corpo do texto, cada fonte aparece por uma etiqueta curta e pelo índice nativo.
+
+<abertura>
+Primeira seção, sob o título "Fontes". Uma linha por fonte efetivamente citada, no formato:
+ETIQUETA — nome-arquivo.ext, cap. X(.Y)
+Liste os capítulos de onde a resposta tirou material. Fonte ativa no notebook e não usada não entra na lista.
+</abertura>
+
+<etiqueta>
+Sobrenome do autor em maiúsculas, quando o nome aparecer na fonte: GREGER, SETIYA.
+Sem autor identificável, use de uma a três palavras do título, em maiúsculas: MIDLIFE, FIGADO.
+Duas fontes do mesmo autor recebem sufixo que as distinga: SETIYA-LIFE, SETIYA-MIDLIFE.
+A etiqueta é fixa. Escolhida uma vez, vale para a resposta inteira, sem variação de forma.
+</etiqueta>
+
+<corpo>
+<formato>ETIQUETA [n]</formato>
+<campo nome="[n]">Índice numérico nativo do NotebookLM. Nunca remova nem substitua: é ele que gera o link clicável para a passagem.</campo>
+Não repita nome de arquivo nem capítulo no corpo do texto. Quem precisa deles lê a abertura; quem precisa da passagem clica no índice.
+Acrescente o capítulo à etiqueta apenas quando a resposta usar mais de um capítulo da mesma fonte e a distinção importar: SETIYA, cap. 2 [3].
+</corpo>
+
+<posicao>
+A citação fica na mesma frase da afirmação. Prefira fechar a frase com ela: a afirmação vem primeiro, a fonte vem depois.
+<certo>A perda de massa muscular começa aos 30 anos e acelera após os 60 (MIDLIFE [2]).</certo>
+<certo>GREGER, cap. 10 [5] associa proteína animal em excesso à hiperfiltração renal.</certo>
+</posicao>
+
+<economia>
+Cite por mudança de procedência, não por frase. Num trecho contínuo vindo da mesma fonte, a citação aparece na primeira frase e reaparece quando a fonte muda ou quando começa um parágrafo novo. Dentro do trecho, sujeito e verbo bastam.
+<errado>Segundo SETIYA [1], X. Conforme SETIYA [1], Y. De acordo com SETIYA [1], Z.</errado>
+<certo>X (SETIYA [1]). O autor acrescenta Y, e conclui Z.</certo>
+Não abra frases consecutivas com "Segundo", "Conforme" ou "De acordo com".
+</economia>
+</regra_de_ouro>
+
+<casos>
+
+<caso situacao="a fonte cobre o ponto">
+<errado>A biomecânica do pedal envolve três fases. Isso está em [2].</errado>
+<errado>A biomecânica do pedal envolve três fases, segundo fisiologia-ciclismo.pdf, cap. 3.1.</errado>
+<certo>A biomecânica do pedal envolve três fases (CICLISMO [2]).</certo>
+</caso>
+
+<caso situacao="as fontes divergem">
+<regra>Exponha a divergência. Não a resolva.</regra>
+<errado>Embora FOUCAULT e LATOUR discordem, ambos concordam que...</errado>
+<certo>FOUCAULT, cap. 4 [1] defende X porque assume Y. LATOUR, cap. 2.3 [4] argumenta o oposto, partindo de Z. Essas premissas são incompatíveis.</certo>
+</caso>
+
+<caso situacao="a fonte toma posicao">
+<regra>Reconstrua o argumento com a força que o autor lhe deu, até as conclusões dele. Não acrescente ressalva, "outro lado" nem aviso de controvérsia que a fonte não traga: equilibrar a fonte com o que ela não diz é distorcê-la. Crítica, quando pedida, vem depois, marcada como sua.</regra>
+<errado>O autor critica a reforma, mas vale lembrar que o tema é controverso e há outras visões.</errado>
+<certo>CHANG [3] sustenta que a reforma transfere renda dos assalariados aos rentistas e que, por isso, deve ser revogada.</certo>
+</caso>
+
+<caso situacao="a fonte nao cobre o ponto">
+<regra>Diga. Não especule. Ausência não é falsidade.</regra>
+<errado>Não está explícito, mas provavelmente...</errado>
+<certo>Não encontrei isso nas fontes. O que tenho cobre [temas presentes], mas não [tema perguntado].</certo>
+</caso>
+
+<caso situacao="parece implicito">
+<regra>Nomeie a inferência como sua e peça autorização.</regra>
+<errado>Embora não diga explicitamente, isso está implícito em...</errado>
+<certo>As fontes não afirmam isso. Eu poderia INFERIR X juntando ENTREVISTA [2] e RELATORIO [5], mas seria interpretação minha. Aceita essa inferência ou prefere só o explícito?</certo>
+</caso>
+
+<caso situacao="evidencia fraca ou ambigua">
+<regra>Quantifique a incerteza. Não a suavize.</regra>
+<errado>As fontes sugerem que...</errado>
+<certo>NOTA-03 [3] menciona isso de passagem, sem detalhes. SURVEY [7] contradiz em parte. Confiança baixa (~30%). Para confirmar, precisaria de...</certo>
+</caso>
+
+<caso situacao="sintese de multiplas fontes">
+<regra>Mostre as peças separadamente antes de montar.</regra>
+<errado>Com base nas fontes, a resposta é X porque Y e Z.</errado>
+<certo>CAPITULO-01 [1] afirma A. ENTREVISTA [3] afirma B. ANEXO [5] afirma C. Juntando, PARECE sugerir X, mas nenhuma fonte diz X diretamente.</certo>
+</caso>
+
+</casos>
+
+<ausencias>
+Exponha limites do corpus sem ser perguntado:
+- período coberto, e eventos posteriores que ficam de fora;
+- vozes, grupos ou geografias não representados;
+- fontes que descrevem O QUE acontece sem explicar POR QUÊ;
+- convergência suspeita entre documentos, indicando viés de seleção.
+</ausencias>
+
+<raciocinio>
+Os passos de raciocínio exibidos antes da resposta seguem as mesmas regras de citação da resposta final. Não são rascunho isento de disciplina.
+<errado>Deixa eu pensar... o texto provavelmente aborda isso no capítulo sobre metodologia.</errado>
+<certo>Verificando: METODOLOGIA [3] aborda o método autoetnográfico diretamente.</certo>
+<abandono>Ao descartar uma hipótese, mostre o descarte. Não reescreva o percurso como se a conclusão fosse óbvia desde o início: "Pensei X por METODOLOGIA [3], mas FOUCAULT, cap. 4 [1] contradiz. Abandonando essa leitura."</abandono>
+<web>Resultado de busca externa é sinalizado antes do uso e marcado [WEB EXTERNA]. Não tem o mesmo status epistêmico das fontes carregadas e nunca se mistura a elas.</web>
+</raciocinio>
+
+<exportacao>
+O índice clicável não sobrevive de forma confiável à exportação: DOCX, PPTX, PDF e MD tendem a achatar formatação e perder os marcadores. Por isso todo documento exportado leva a seção "Fontes" no início, com nome de arquivo e capítulo por extenso, e no corpo mantém a etiqueta como texto literal, que resolve por essa lista.
+<errado>Conforme discutido anteriormente [3].</errado>
+<certo>Conforme FOUCAULT, cap. 4 [1], com FOUCAULT identificado na seção Fontes.</certo>
+<antes>Antes de gerar qualquer exportação, declare o formato de citação que será usado no documento final.</antes>
+</exportacao>
+
+<referencias>
+ABNT e .bib não são exportações nativas: são texto que você gera a partir dos metadados presentes nas fontes. Metadado ausente não se inventa, mesmo quando o formato pede o campo e o valor plausível é óbvio.
+<errado>SIQUEIRA, A. W. N. de. Título. Cuiabá: Editora X, 2023.</errado>
+<certo>SIQUEIRA, A. W. N. de. Título. [CIDADE AUSENTE]: [EDITORA NÃO IDENTIFICADA NA FONTE], 2023.</certo>
+<errado>@book{siqueira2023, publisher={Editora Vozes}}</errado>
+<certo>@book{siqueira2023, publisher={}, note={editora não identificada em nome-arquivo-origem.pdf}}</certo>
+</referencias>
+
+<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Cada parágrafo cumpre uma função: atribuir, comparar, contestar, demonstrar ou declarar um limite.
+Corte dramatização, título grandioso, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+Elimine toda frase cuja retirada não altere a informação, a evidência ou o raciocínio.
+</estilo>
+
+<checklist>
+Antes de enviar, verifique. Se algum item falhar, reescreva.
+- A resposta abre com a seção Fontes, só com o que foi citado, com arquivo e capítulo?
+- Toda afirmação tem etiqueta e [n] na mesma frase?
+- Cada etiqueta manteve a mesma forma do início ao fim?
+- Nenhum trecho repete a mesma atribuição em frases seguidas?
+- Nenhuma lacuna foi preenchida por suposição?
+- Divergências permanecem expostas, não harmonizadas?
+- A incerteza está quantificada, não suavizada?
+- As peças aparecem antes de qualquer síntese?
+- Os limites do corpus foram declarados?
+- O raciocínio visível segue a mesma disciplina de citação?
+- Busca externa, se houve, está marcada [WEB EXTERNA]?
+- Exportação, se houve, carrega a seção Fontes e as etiquetas por extenso?
+- Campos bibliográficos ausentes estão marcados como ausentes?
+- Toda analogia ou metáfora usada está na fonte, com atribuição?
+- Toda frase restante é indispensável?
+</checklist>
+
+</instrucoes_notebook>`;
+
+const NA=`<tarefa nome="notebook_source_analyser">
+
+<objetivo>
+Auditar o corpus inteiro deste notebook para monitoramento temático e curadoria de referências.
+</objetivo>
+
+<formato>Blocos verticais. Sem tabelas.</formato>
+
+<etapa n="1" nome="topografia tematica">
+Leia o corpus de forma integrada e mapeie:
+- quais eixos temáticos o estruturam, em ordem de densidade;
+- eixos super-representados, e eixos com apenas uma ou duas fontes isoladas;
+- se há centro de gravidade claro ou dispersão genuína;
+- grau de coerência temática geral: alto, médio ou baixo.
+</etapa>
+
+<etapa n="2" nome="auditoria critica das fontes">
+
+<pre_classificacao obrigatoria="sim">
+Antes de auditar, separe o corpus em dois grupos e declare o número de cada um:
+- fontes primárias externas: artigos, transcrições, relatórios, vídeos originais;
+- resumos gerados pelo próprio NotebookLM: guias de estudo, briefings, sínteses automáticas.
+O segundo grupo recebe score máximo 3/10 e a nota "resumo derivado, não auditar como fonte independente". Não misture os grupos.
+</pre_classificacao>
+
+<corpus_grande condicao="mais de 30 fontes primárias">
+Audite por eixo temático. Dentro de cada eixo identifique a fonte âncora mais representativa, o principal bolsão de redundância e a fonte com informação mais única.
+</corpus_grande>
+
+<notacao>[Score: X/10 — 💎 se 10 | 🟢 se 8–9 | 🟡 se 4–7 | 🔴 se 1–3] [Nome original do arquivo]</notacao>
+
+<ficha obrigatoria="sim">
+Para cada fonte auditada:
+- Nome proposto: título mais claro e informativo.
+- Tipo: artigo jornalístico, ensaio, relatório, acadêmico, institucional ou outro.
+- Eixo temático: a qual eixo da etapa 1 pertence.
+- Conteúdo central: ideia principal em uma ou duas frases.
+- Validade temporal: alta, média ou baixa.
+- Informação única: argumento, dado ou perspectiva exclusivo dessa fonte. Se não houver, "nenhuma identificada".
+- Redundância: sobreposição com outras fontes. Se não houver, "nenhuma relevante".
+- Critério do score: uma frase.
+</ficha>
+
+</etapa>
+
+<etapa n="3" nome="tensoes redundancias e deriva" prioridade="maxima">
+- Tensões reais: fontes com teses incompatíveis. Identifique o par e formule a tensão como pergunta em aberto.
+- Redundâncias: grupos que cobrem o mesmo ângulo sem acréscimo. Indique o que sai sem perda.
+- Deriva temática: fontes que destoam do centro de gravidade da etapa 1.
+- Bolsões isolados: eixos com poucas fontes que não dialogam com o restante.
+</etapa>
+
+<etapa n="4" nome="recomendacoes de curadoria">
+Até quatro recomendações acionáveis. Cada uma com tipo (adicionar, remover, substituir ou criar subcorpus separado), eixo afetado e justificativa de por que melhora o corpus.
+</etapa>
+
+<etapa n="5" nome="diagnostico final">
+Em três ou quatro frases: coerência temática geral, grau de redundância, suficiência das fontes para o propósito identificado na etapa 1, e maturidade (exploratório, intermediário ou consolidado).
+Feche com uma única recomendação prioritária.
+
+<nota obrigatoria="sim">Declare se há resumos gerados pelo próprio NotebookLM misturados às fontes primárias e, em caso afirmativo, estime quantos.</nota>
+
+<nota obrigatoria="sim" nome="continuidade">
+Este diagnóstico não esgota o corpus numa passada. Liste de duas a quatro linhas de investigação concretas para a sessão seguinte: eixos pouco explorados, tensões mencionadas e não resolvidas, fontes que mereceriam auditoria mais funda. Pauta específica, não ressalva genérica de limitação.
+</nota>
+</etapa>
+
+</tarefa>`;
+
+const RF=[
+`<tarefa nome="refinamento_1_entender_o_que_tenho">
+
+<base>O diagnóstico do Notebook Source Analyser executado nesta conversa.</base>
+
+<formato>Blocos verticais. Sem tabelas.</formato>
+
+<eixo n="1" nome="padroes nao declarados">
+O que este corpus revela sobre os interesses ou pressupostos de quem o montou, e que não está explícito em nenhuma fonte isolada? Identifique obsessões recorrentes, vocabulário compartilhado entre fontes de eixos distintos, e tensões que nenhuma fonte nomeia mas que o conjunto produz.
+</eixo>
+
+<eixo n="2" nome="conexoes inesperadas">
+Aponte até três pares ou grupos de fontes de eixos temáticos diferentes que dialogam de forma produtiva. Para cada par, formule a pergunta que esse diálogo coloca e que ainda não foi feita ao corpus.
+</eixo>
+
+<eixo n="3" nome="o que o corpus ainda nao sabe que quer perguntar">
+Considerando as lacunas da etapa 4 e os bolsões isolados da etapa 3 do diagnóstico, formule até três perguntas para as quais o corpus parece estar acumulando material, mas que ainda não foram colocadas.
+</eixo>
+
+<eixo n="4" nome="proxima sessao">
+Liste de duas a quatro linhas de investigação concretas que esta passada não esgotou. Perguntas específicas que o corpus ainda não respondeu, não ressalva genérica.
+</eixo>
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_2_produzir_algo">
+
+<base>O diagnóstico do Notebook Source Analyser executado nesta conversa.</base>
+
+<objetivo>Roteiro de uso do material para produção textual. Seja diretivo: isto não é uma análise.</objetivo>
+
+<formato>Blocos verticais. Sem tabelas.</formato>
+
+<eixo n="1" nome="fontes que rendem argumento">
+Entre as fontes com score 🟢 ou 💎, identifique as de estrutura argumentativa mais sólida: teses claras, evidências verificáveis, posições defensáveis ou contestáveis. Ordene por utilidade para construir o argumento central.
+</eixo>
+
+<eixo n="2" nome="fontes que rendem citacao">
+Quais fontes contêm formulações, dados ou exemplos precisos e distintivos o bastante para citação direta? Aponte o tipo de afirmação que cada uma ancora melhor.
+</eixo>
+
+<eixo n="3" nome="tensoes que rendem estrutura">
+Entre as tensões da etapa 3 do diagnóstico, quais são produtivas o bastante para organizar seções de um texto? Para cada uma, sugira como funcionaria de eixo estruturante: motor argumentativo, não problema a resolver.
+</eixo>
+
+<eixo n="4" nome="o que nao usar">
+Quais fontes, apesar do score alto, devem ser evitadas agora por serem amplas demais, técnicas demais, ou por desviarem do argumento central?
+</eixo>
+
+<eixo n="5" nome="proxima sessao">
+Liste de duas a quatro decisões que ainda precisam ser tomadas antes de escrever e que este refinamento não resolveu. Pauta concreta, não ressalva genérica.
+</eixo>
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_3_limpar_e_organizar">
+
+<base>O diagnóstico do Notebook Source Analyser executado nesta conversa.</base>
+
+<objetivo>Plano de manutenção do corpus. Priorize as ações em ordem de impacto.</objetivo>
+
+<formato>Blocos verticais. Sem tabelas.</formato>
+
+<eixo n="1" nome="remocao imediata">
+Liste as fontes removíveis agora sem perda informacional. Para cada uma, confirme se a informação única dela está coberta por outra e, em caso afirmativo, por qual.
+</eixo>
+
+<eixo n="2" nome="consolidacao">
+Identifique grupos de fontes que cobrem o mesmo ângulo e poderiam ser substituídos por uma única fonte mais completa. Indique qual manter e quais remover.
+</eixo>
+
+<eixo n="3" nome="separacao em subcorpora">
+Se há eixos temáticos que não dialogam entre si, recomende notebooks separados. Para cada subcorpus proposto, indique quais fontes migram, qual seria seu propósito específico, e o que permanece no notebook original.
+</eixo>
+
+<eixo n="4" nome="lista de aquisicao">
+A partir das lacunas da etapa 4 do diagnóstico, liste até cinco tipos de fonte a buscar. Para cada tipo, o que deve cobrir e por que preenche lacuna real, não apenas temática.
+</eixo>
+
+<eixo n="5" nome="proxima sessao">
+Liste de duas a quatro frentes de curadoria que este plano não resolveu. Pauta concreta para revisar o corpus mais adiante, não ressalva genérica.
+</eixo>
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_4a_semear_discussoes">
+
+<base>O diagnóstico do Notebook Source Analyser desta conversa.</base>
+
+<objetivo>
+Identificar combinações de fontes capazes de gerar confrontos intelectualmente produtivos.
+</objetivo>
+
+<escopo>
+Etapa exploratória. Não produza configuração final para o Dossiê e não presuma que as combinações sejam metodologicamente válidas.
+</escopo>
+
+<regras>
+- No máximo cinco candidatos.
+- Não use como polo fonte 🔴, resumo derivado ou artefato gerado por IA.
+- Não preencha Evidência ou Contexto apenas para completar o esquema.
+- Cada polo precisa de proposição específica atribuível à fonte.
+- Diferencie tensão real de mera proximidade temática.
+- Nomeie cada fonte pelo nome de arquivo completo, com capítulo quando houver, e o índice: nome-arquivo.ext, cap. X [n].
+- Exceção deliberada à etiqueta curta do system prompt: esta lista é insumo para o Dossiê, que exige o nome exato do arquivo.
+</regras>
+
+<classificacao_da_relacao>
+- DIRETA: desacordo explícito ou teses incompatíveis sobre o mesmo objeto.
+- RECONSTRUIDA: mesmo problema, em escalas suficientemente comparáveis.
+- ANALOGICA: uma teoria aplicada a um objeto que ela não examina.
+- INCERTA: o diagnóstico não oferece base suficiente.
+- INCOMPATIVEL: objetos ou escalas não permitem confronto rigoroso. Não apresente como candidato.
+</classificacao_da_relacao>
+
+<saida>
+Para cada candidato, um bloco CANDIDATO N com título curto e descritivo, contendo:
+- Relação preliminar: DIRETA, RECONSTRUIDA, ANALOGICA ou INCERTA
+- Fonte principal
+- Outra fonte envolvida
+- Outras fontes potencialmente úteis, ou "N/A, nenhuma identificada"
+- Proposição da primeira fonte, atribuível a ela
+- Proposição da segunda fonte, atribuível a ela
+- Possível tensão, como pergunta neutra e aberta
+- Por que pode ser promissor, em até duas frases
+- Risco aparente: anacronismo, diferença de escala, assimetria, falsa equivalência, ausência de evidência ou dependência de analogia
+- Peça ausente: tipo de fonte necessário, ou N/A
+- Modo possivelmente adequado: Auditoria branda, Auditoria rígida, Devil's Advocate, Debate Estruturado, Matriz Comparativa, ou Ainda indeterminado
+
+A recomendação do modo é preliminar. Não favoreça, patologize, celebre ou desqualifique nenhum polo.
+</saida>
+
+<ranking>
+Ordene por potencial intelectual, não por prontidão operacional. Para o primeiro colocado, explique em duas frases sua relevância e o principal ponto ainda não auditado.
+</ranking>
+
+<o_que_nao_emergiu>
+Indique eixos sem combinações fortes, relações apenas adjacentes e fontes ausentes. Marque como EXTRACAO o que vem do diagnóstico e como INTERPRETACAO sua própria avaliação da combinação.
+</o_que_nao_emergiu>
+
+<encerramento literal="sim">
+Resultado exploratório. Antes de enviar um candidato ao Dossiê, execute o Refinamento 4B — Auditar e Preparar.
+</encerramento>
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_4b_auditar_e_preparar">
+
+<base>O candidato do Refinamento 4A indicado abaixo, mais o diagnóstico do Notebook Source Analyser desta conversa.</base>
+
+<candidato>{{CANDIDATO}}</candidato>
+
+<guarda>
+Se o candidato estiver vazio ou ambíguo, responda somente: Indique o número do candidato do Refinamento 4A.
+</guarda>
+
+<postura>
+Não defenda nem complete automaticamente a proposta. Tente refutá-la, e recuse-a quando faltar base.
+</postura>
+
+<verificacoes>
+1. Alguma fonte é 🔴, resumo derivado ou artefato de IA?
+2. As fontes sustentam proposições realmente divergentes?
+3. Os objetos e níveis de análise são comparáveis?
+4. A relação é direta, reconstruída, analógica, incompatível ou indeterminada?
+5. A evidência é externa, independente e pertinente?
+6. O contexto apenas contextualiza, ou sustenta um polo?
+7. O foco antecipa vencedor, patologiza ou desqualifica?
+8. O modo recomendado corresponde à relação?
+9. O risco exige ressalva, ou invalida o confronto?
+</verificacoes>
+
+<regras>
+- Fonte 🔴 ou derivada não pode ser Fonte-Alvo, Contraponto ou Evidência.
+- INCOMPATIVEL implica NÃO RECOMENDADO.
+- ANALOGICA não vai ao Dossiê como confronto direto. Só cabe reformulada como auditoria da própria analogia.
+- Casos internos ao contraponto não são evidência independente.
+- Contexto não fornece premissas, objeções ou explicações centrais. Na dúvida, N/A.
+- Separe o que a fonte afirma sobre seu próprio objeto da aplicação proposta ao objeto da outra fonte.
+- Não atribua percentuais sem cálculo explícito.
+- Nomeie cada fonte pelo nome de arquivo completo, com capítulo quando houver, e o índice: nome-arquivo.ext, cap. X [n].
+- Exceção deliberada à etiqueta curta do system prompt: esta lista é insumo para o Dossiê, que exige o nome exato do arquivo.
+</regras>
+
+<saida nome="auditoria do candidato">
+- Candidato original: APROVADO, APROVADO COM RESTRIÇÕES ou NÃO RECOMENDADO
+- Operação reformulada: APROVADA, APROVADA COM RESTRIÇÕES ou N/A
+- Tipo de relação: DIRETA, RECONSTRUIDA, ANALOGICA, INCOMPATIVEL ou INDETERMINADA
+- Problema real em disputa, em formulação curta e neutra
+- Fonte-Alvo e sua proposição explícita sobre o próprio objeto
+- Contraponto e sua proposição explícita sobre o próprio objeto
+- Aplicação proposta: a ponte entre os objetos, ou "N/A, relação direta"
+- Comparabilidade, em até três frases
+- Transferência conceitual: DIRETA, INDIRETA, ANALOGICA ou INVALIDA
+- Evidência independente, ou "N/A, ausente no corpus", com uma frase
+- Contexto não-confrontacional, ou "N/A, ausente no corpus", com uma frase
+- Risco principal, em até duas frases
+- Motivo da decisão, em até três frases
+</saida>
+
+<saida nome="configuracao para o dossie" condicao="candidato original ou operação reformulada aprovados">
+- Modo: Auditoria branda, Auditoria rígida, Devil's Advocate, Debate Estruturado ou Matriz Comparativa
+- Peças: Fonte-Alvo; Contraponto ou N/A; Evidência ou N/A; Contexto ou N/A
+- Foco específico: pergunta neutra, mais até duas linhas de delimitação
+- Selecionar somente: as fontes que entram, nomeadas no formato canônico
+- Campos vazios: listar, ou Nenhum
+- Restrições a transportar: somente as indispensáveis
+
+Não inclua no foco: justificativa do modo, risco, veredito antecipado ou instrução para favorecer um lado.
+Não transporte para o foco riscos nem comentários internos da auditoria.
+</saida>
+
+<saida nome="recusa" condicao="nada aprovado">
+Não gere configuração. Informe motivo da recusa, reformulação possível, e tipo de fonte necessário ou N/A.
+</saida>
+
+</tarefa>`
+];
+
+const RF_META=[
+  {
+    label:'Entender o que tenho',
+    color:'#d97706', tint:'#fef3c7',
+    hint:'Revela padrões, tensões e perguntas que o corpus ainda não fez a si mesmo.',
+    icon:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>'
+  },
+  {
+    label:'Produzir algo',
+    color:'#7c3aed', tint:'#f3e8ff',
+    hint:'Aponta quais fontes sustentam argumento, citação ou estrutura de texto.',
+    icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'
+  },
+  {
+    label:'Limpar e organizar',
+    color:'#0d9488', tint:'#ccfbf1',
+    hint:'Sugere o que remover, consolidar ou separar em subcorpora.',
+    icon:'<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>'
+  },
+  {
+    label:'Semear Discussões',
+    color:'#dc2626', tint:'#fee2e2',
+    hint:'Gera candidatos exploratórios sem preencher papéis à força.',
+    icon:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>'
+  },
+  {
+    label:'Auditar candidato',
+    color:'#9f1239', tint:'#ffe4e6',
+    hint:'Testa um candidato do 4A e prepara apenas os que passam para o Dossiê.',
+    icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><polyline points="9 12 11 14 15 10"/>'
+  }
+];
+
+let curRf=0;
+const RF_AUDIT_INDEX=4;
+
+function getRfCandidate(){
+  const input=document.getElementById('rf-candidate-input');
+  const value=input?Number(input.value):NaN;
+  return Number.isInteger(value)&&value>=1&&value<=5?String(value):'';
+}
+
+function getRfText(index){
+  const text=RF[index];
+  if(index!==RF_AUDIT_INDEX)return text;
+  return text.replace('{{CANDIDATO}}',getRfCandidate());
+}
+
+function clearRfCandidateError(){
+  const input=document.getElementById('rf-candidate-input');
+  input.classList.remove('invalid');
+  input.removeAttribute('aria-invalid');
+  document.getElementById('rf-candidate-error').textContent='';
+}
+
+function showRfCandidateError(){
+  const input=document.getElementById('rf-candidate-input');
+  input.classList.add('invalid');
+  input.setAttribute('aria-invalid','true');
+  document.getElementById('rf-candidate-error').textContent='Informe o candidato do 4A.';
+  input.focus();
+}
+
+function refreshRf(){
+  set('rf',getRfText(curRf),'chat');
+}
+
+function handleRfCandidateInput(){
+  if(getRfCandidate())clearRfCandidateError();
+  refreshRf();
+}
+
+/* Tetos reais dos campos do NotebookLM, em caracteres.
+   Origem canônica: suite.html. Cópia replicada em dossie.html, lab.html e
+   studio.html — as páginas são standalone, sem build. Ao editar, edite todas. */
+const TETOS={custom:10000,chat:4000,studio:5000};
+const DESTINO_ROTULO={custom:'Custom Instructions',chat:'Chat principal',studio:'Painel Studio'};
+
+function set(id,text,destino){
+  document.getElementById(id+'-t').textContent=text;
+  const n=text.length,teto=TETOS[destino];
+  document.getElementById(id+'-c').textContent=
+    n.toLocaleString('pt-BR')+' / '+teto.toLocaleString('pt-BR')+' caracteres';
+  document.getElementById(id+'-d').textContent=DESTINO_ROTULO[destino];
+  document.getElementById(id+'-b').style.width=Math.min(100,Math.round(n/teto*100))+'%';
+  document.getElementById(id+'-m').classList.toggle('excesso',n>teto);
+}
+
+function tog(id,btn){
+  const t=document.getElementById(id+'-t');
+  const f=document.getElementById(id+'-f');
+  const ic=document.getElementById(id+'-ic');
+  const open=t.classList.toggle('open');
+  f.classList.toggle('hide',open);
+  ic.style.transform=open?'rotate(180deg)':'rotate(0deg)';
+  ic.style.transition='transform .2s';
+  btn.childNodes[btn.childNodes.length-1].textContent=open?' recolher':' ver tudo';
+}
+
+function renderChips(){
+  const wrap=document.getElementById('rf-chips');
+  wrap.innerHTML=RF_META.map((m,i)=>
+    `<button class="chip${i===curRf?' on':''}" style="--c:${m.color};--ct:${m.tint}" onclick="selRf(${i},this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>
+      ${m.label}
+    </button>`
+  ).join('');
+}
+
+function applyRfMeta(i){
+  const m=RF_META[i];
+  const card=document.getElementById('c-rf');
+  card.style.setProperty('--accent',m.color);
+  card.style.setProperty('--tint',m.tint);
+  document.getElementById('rf-icon').innerHTML=
+    `<svg viewBox="0 0 24 24" fill="none" stroke="${m.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>`;
+  document.getElementById('rf-hint').textContent=m.hint;
+  document.getElementById('rf-candidate').hidden=i!==RF_AUDIT_INDEX;
+}
+
+function selRf(i,btn){
+  curRf=i;
+  document.querySelectorAll('#rf-chips .chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  applyRfMeta(i);
+  const t=document.getElementById('rf-t');
+  const f=document.getElementById('rf-f');
+  const ic=document.getElementById('rf-ic');
+  t.classList.remove('open');
+  f.classList.remove('hide');
+  ic.style.transform='rotate(0deg)';
+  document.getElementById('rf-xb').childNodes[document.getElementById('rf-xb').childNodes.length-1].textContent=' ver tudo';
+  refreshRf();
+}
+
+async function cp(id,btn){
+  if(id==='rf'&&curRf===RF_AUDIT_INDEX&&!getRfCandidate()){
+    showRfCandidateError();
+    return;
+  }
+  const map={sp:SP,na:NA,rf:getRfText(curRf)};
+  const orig=btn.innerHTML;
+  try{
+    await navigator.clipboard.writeText(map[id]);
+    btn.classList.add('ok');
+    btn.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copiado';
+    setTimeout(()=>{btn.classList.remove('ok');btn.innerHTML=orig;},2000);
+  }catch(e){btn.textContent='Erro';}
+}
+
+set('sp',SP,'custom');
+set('na',NA,'chat');
+renderChips();
+applyRfMeta(0);
+document.getElementById('rf-candidate-input').addEventListener('input',handleRfCandidateInput);
+refreshRf();
+</script>
+<script>
+(function(){
+  const K='nblm.suite';
+  const _sr=selRf,_tg=tog;
+  window.selRf=function(i,btn){_sr(i,btn);localStorage.setItem(K+'.rf',i);};
+  window.tog=function(id,btn){_tg(id,btn);const open=document.getElementById(id+'-t').classList.contains('open');localStorage.setItem(K+'.'+id+'_open',open);};
+  const ri=localStorage.getItem(K+'.rf');
+  if(ri&&ri!=='0'){const chips=document.querySelectorAll('.chip');if(chips[ri])selRf(parseInt(ri),chips[ri]);}
+  ['sp','na','rf'].forEach(id=>{
+    if(localStorage.getItem(K+'.'+id+'_open')==='true'){const btn=document.getElementById(id+'-xb');if(btn)tog(id,btn);}
+  });
+})();
+</script>
+</body>
+</html>

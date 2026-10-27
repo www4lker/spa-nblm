@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Prompt Lab</title>
+
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --surface2: #1e1e3a;
+            --border: #2a2a4a;
+            --border-hi: #3b2d6b;
+            --text: #e0e0e0;
+            --text-muted: #a0a0b8;
+            --text-dim: #6b6b8a;
+            --text-label: #c8c8d8;
+            --text-card: #d0d0e0;
+            --accent: #7c3aed;
+            --accent-dark: #6d28d9;
+            --accent-deep: #5b21b6;
+            --accent-soft: rgba(124, 58, 237, .15);
+            --accent-glow: rgba(124, 58, 237, .4);
+            --inter: #a78bfa;
+            --inter-bg: #1e1845;
+            --inter-border: #3b2d6b;
+            --inter-active-bg: linear-gradient(135deg, #3b2d6b 0%, #2d1b69 100%);
+            --active-bg: linear-gradient(135deg, #2d1b69 0%, #1e1145 100%);
+            --toggle-on-bg: #2a2415;
+            --toggle-on-border: #f59e0b;
+            --hint-bg: #1a1a35;
+            --hint-border: #3b2d6b;
+            --hint-text: #a78bfa;
+            --hint-title: #c4b5fd;
+            --output-bg: #121228;
+            --char-bg: #1e1e3a;
+            --warning: #f87171;
+            --success: #059669;
+            --shadow1: 0 1px 3px rgba(0, 0, 0, .4), 0 2px 6px 1px rgba(0, 0, 0, .25);
+            --shadow2: 0 2px 6px rgba(0, 0, 0, .4), 0 6px 16px 4px rgba(124, 58, 237, .1);
+            --lang-bg: #1e1e3a;
+            --lang-border: #2a2a4a;
+            --lang-text: #c8c8d8;
+            --lang-active-bg: #2d1b69;
+            --lang-active-border: #7c3aed;
+            --lang-active-text: #c4b5fd;
+            --debate: #22d3ee;
+            --debate-bg: rgba(34, 211, 238, .12);
+            --debate-border: rgba(34, 211, 238, .35);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f4f4f8;
+                --surface: #ffffff;
+                --surface2: #f0f0f6;
+                --border: #d4d4e8;
+                --border-hi: #c4b5fd;
+                --text: #1a1a2e;
+                --text-muted: #5a5a7a;
+                --text-dim: #9090b0;
+                --text-label: #3a3a5a;
+                --text-card: #2a2a4a;
+                --accent: #7c3aed;
+                --accent-dark: #6d28d9;
+                --accent-deep: #5b21b6;
+                --accent-soft: rgba(124, 58, 237, .1);
+                --accent-glow: rgba(124, 58, 237, .35);
+                --inter: #6d28d9;
+                --inter-bg: #f3f0ff;
+                --inter-border: #c4b5fd;
+                --inter-active-bg: linear-gradient(135deg, #ddd6fe 0%, #ede9fe 100%);
+                --active-bg: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+                --toggle-on-bg: #fffbeb;
+                --toggle-on-border: #f59e0b;
+                --hint-bg: #f5f3ff;
+                --hint-border: #c4b5fd;
+                --hint-text: #6d28d9;
+                --hint-title: #5b21b6;
+                --output-bg: #f8f8fc;
+                --char-bg: #f0f0f8;
+                --warning: #dc2626;
+                --success: #059669;
+                --shadow1: 0 1px 3px rgba(0, 0, 0, .08), 0 2px 6px 1px rgba(0, 0, 0, .05);
+                --shadow2: 0 2px 6px rgba(0, 0, 0, .08), 0 6px 16px 4px rgba(124, 58, 237, .08);
+                --lang-bg: #f0f0f8;
+                --lang-border: #d4d4e8;
+                --lang-text: #3a3a5a;
+                --lang-active-bg: #ede9fe;
+                --lang-active-border: #7c3aed;
+                --lang-active-text: #5b21b6;
+                --debate: #0e7490;
+                --debate-bg: #ecfeff;
+                --debate-border: #67e8f9;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 2rem 1rem;
+            transition: background .2s, color .2s;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: .5rem;
+            color: var(--text);
+            letter-spacing: -.5px;
+        }
+
+        .header p {
+            font-size: .95rem;
+            color: var(--text-muted);
+        }
+
+        .lang-switcher {
+            display: inline-flex;
+            gap: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--lang-border);
+            margin-bottom: 1rem;
+        }
+
+        .lang-btn {
+            background: var(--lang-bg);
+            border: none;
+            padding: .45rem 1rem;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--lang-text);
+            font-family: inherit;
+            transition: all .18s;
+            letter-spacing: .3px;
+        }
+
+        .lang-btn:first-child {
+            border-right: 1px solid var(--lang-border);
+        }
+
+        .lang-btn.active {
+            background: var(--lang-active-bg);
+            color: var(--lang-active-text);
+            border-color: var(--lang-active-border);
+        }
+
+        .lang-btn:hover:not(.active) {
+            filter: brightness(1.08);
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow1);
+            margin-bottom: 1.5rem;
+            transition: box-shadow .2s;
+            border: 1px solid var(--border);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow2);
+        }
+
+        .input-section {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: .5rem;
+            font-weight: 500;
+            color: var(--text-label);
+            font-size: .9rem;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: .75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .95rem;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-weight: 600;
+            color: var(--text-label);
+            font-size: .85rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: .85rem;
+            margin-top: .25rem;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .section-label.interdisciplinar {
+            color: var(--inter);
+        }
+
+        .section-label.interdisciplinar::after {
+            background: var(--inter-border);
+        }
+
+        .templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: .65rem;
+            margin-bottom: .5rem;
+        }
+
+        .template-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: .85rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: left;
+            font-size: .875rem;
+            color: var(--text-card);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-family: inherit;
+        }
+
+        .template-btn:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .template-btn.active {
+            background: var(--active-bg);
+            border-color: var(--accent);
+            color: var(--inter);
+        }
+
+        .template-btn.inter {
+            border-color: var(--inter-border);
+            background: var(--inter-bg);
+        }
+
+        .template-btn.inter:hover {
+            border-color: var(--inter);
+        }
+
+        .template-btn.inter.active {
+            background: var(--inter-active-bg);
+            border-color: var(--inter);
+            color: var(--inter);
+        }
+
+        .template-btn span {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .template-btn .format-tag {
+            margin-left: auto;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            padding: .15rem .45rem;
+            border-radius: 999px;
+            background: var(--debate-bg);
+            color: var(--debate);
+            border: 1px solid var(--debate-border);
+            flex-shrink: 0;
+        }
+
+        .generate-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: .875rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            width: 100%;
+            box-shadow: 0 2px 8px 0 rgba(124, 58, 237, .3);
+            font-family: inherit;
+        }
+
+        .generate-btn:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 4px 16px 0 var(--accent-glow);
+        }
+
+        .generate-btn:active {
+            background: var(--accent-deep);
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .9rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface2);
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 1.25rem;
+            user-select: none;
+        }
+
+        .toggle-row:hover {
+            border-color: var(--accent);
+        }
+
+        .toggle-row.on {
+            border-color: var(--toggle-on-border);
+            background: var(--toggle-on-bg);
+        }
+
+        .toggle-switch {
+            width: 36px;
+            height: 20px;
+            border-radius: 10px;
+            background: #ccc;
+            position: relative;
+            flex-shrink: 0;
+            transition: background .2s;
+        }
+
+        .toggle-switch.on {
+            background: #f59e0b;
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            transition: left .2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+        }
+
+        .toggle-switch.on .toggle-knob {
+            left: 19px;
+        }
+
+        .toggle-label {
+            font-size: .875rem;
+            font-weight: 500;
+            color: var(--text-card);
+        }
+
+        .toggle-desc {
+            font-size: .8rem;
+            color: var(--text-dim);
+            margin-left: auto;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .output-header h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .output-box {
+            background: var(--output-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace;
+            font-size: .82rem;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            max-height: 520px;
+            overflow-y: auto;
+            color: var(--text-card);
+        }
+
+        .copy-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: .625rem 1.25rem;
+            border-radius: 6px;
+            font-size: .9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-dark);
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+        }
+
+        .char-count {
+            font-size: .8rem;
+            color: var(--text-dim);
+            margin-top: .75rem;
+            padding: .5rem .75rem;
+            background: var(--char-bg);
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .warning {
+            color: var(--warning);
+            font-weight: 500;
+        }
+
+        .focus-recommended {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .recommended-badge {
+            color: var(--inter);
+            font-weight: 600;
+            font-size: .85rem;
+        }
+
+        #focusHintBox {
+            display: none;
+            margin-top: .6rem;
+            padding: .75rem 1rem;
+            background: var(--hint-bg);
+            border: 1px solid var(--hint-border);
+            border-radius: 8px;
+            font-size: .82rem;
+            color: var(--hint-text);
+            line-height: 1.6;
+        }
+
+        #focusHintTitle {
+            font-weight: 600;
+            margin-bottom: .35rem;
+            color: var(--hint-title);
+        }
+
+        @media(max-width:768px) {
+            .templates {
+                grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    
+.nlm-nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;padding:0 16px;height:40px;background:#080812;border-bottom:1px solid #1a1a30;font:500 11px/1 ui-monospace,monospace;gap:0;flex-shrink:0}
+.nlm-nav a{color:#44445e;text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .12s,background .12s}
+.nlm-nav a:hover{color:#9090c0;background:#14142a}
+.nlm-nav .nlm-active{color:#a78bfa!important;background:#1a143a!important}
+.nlm-nav .nlm-home{color:#33334a;padding:5px 12px 5px 2px;margin-right:10px;border-right:1px solid #1a1a30;letter-spacing:.05em}
+.nlm-nav .nlm-home:hover{color:#6060a0;background:none!important}
+.nlm-nav .nlm-lang{margin-left:auto;display:flex;gap:2px;padding-left:10px;border-left:1px solid #1a1a30}
+.nlm-lang-btn{background:none;border:1px solid transparent;color:#44445e;font:500 10px/1 ui-monospace,monospace;padding:4px 7px;border-radius:3px;cursor:pointer;letter-spacing:.06em;transition:color .12s}
+.nlm-lang-btn:hover{color:#9090c0}
+.nlm-lang-btn.nlm-lang-on{color:#c8b060!important;border-color:#2a2418!important}
+
+/* Seletor PT/EN escondido: as tags XML e o system prompt canônico são
+   em português, e a Suite não tem versão EN — um usuário em inglês
+   receberia prompts EN sem system prompt correspondente. As strings
+   i18n.en seguem no código, intactas; só o acesso está fechado. */
+.nlm-nav .nlm-lang{display:none!important}
+
+.medidor{display:inline-flex;align-items:center;gap:9px;vertical-align:middle}
+.medidor .destino{font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.medidor .barra{position:relative;width:110px;height:3px;border-radius:2px;background:rgba(128,128,128,.28);overflow:hidden}
+.medidor .barra i{position:absolute;top:0;bottom:0;left:0;background:currentColor}
+.medidor .numero{font-variant-numeric:tabular-nums;white-space:nowrap}
+.medidor.excesso{color:#b91c1c;font-weight:600}
+</style>
+    <style>:root {
+  --suite-ink: #17243a;
+  --suite-ink-2: #314158;
+  --suite-muted: #657186;
+  --suite-paper: #f6f3ec;
+  --suite-sheet: #fffdf8;
+  --suite-line: #d8d2c5;
+  --suite-accent: #245b78;
+  --suite-accent-soft: #e4eef1;
+  --suite-success: #31715b;
+  --suite-danger: #a7443d;
+  --suite-radius: 8px;
+  --suite-shadow: 0 10px 30px rgba(25, 36, 48, .07);
+}
+
+html { color-scheme: light; scroll-behavior: smooth; }
+body {
+  background: var(--suite-paper) !important;
+  color: var(--suite-ink) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  padding: 0 1rem 3rem !important;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(23,36,58,.025) 1px, transparent 1px);
+  background-size: 100% 32px;
+}
+
+.suite-shell { max-width: 1180px; margin: 0 auto 2.5rem; }
+.suite-nav {
+  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  border-bottom: 1px solid var(--suite-line); color: var(--suite-ink);
+}
+.suite-brand { display: flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; }
+.suite-brand-mark {
+  width: 32px; height: 36px; display: grid; place-items: center; border: 1px solid var(--suite-ink);
+  border-radius: 2px 7px 7px 2px; font-family: Georgia, serif; font-weight: 700; font-size: .82rem;
+  box-shadow: inset 4px 0 0 var(--suite-accent-soft);
+}
+.suite-brand strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+.suite-brand small { display: block; margin-top: 2px; color: var(--suite-muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.suite-links { display: flex; align-items: center; gap: .25rem; }
+.suite-links a, .suite-menu summary {
+  color: var(--suite-ink-2); text-decoration: none; padding: .55rem .7rem; border-radius: 5px;
+  font-size: .78rem; font-weight: 650; cursor: pointer; list-style: none;
+}
+.suite-links a:hover, .suite-links a:focus-visible, .suite-menu summary:hover { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu { position: relative; }
+.suite-menu summary::-webkit-details-marker { display: none; }
+.suite-menu[open] summary { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu-panel {
+  position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; min-width: 240px; padding: .45rem;
+  background: var(--suite-sheet); border: 1px solid var(--suite-line); border-radius: var(--suite-radius); box-shadow: var(--suite-shadow);
+}
+.suite-menu-panel a { display: block; }
+.suite-context { display: flex; align-items: center; gap: .65rem; margin-top: 1rem; color: var(--suite-muted); font-size: .75rem; }
+.suite-context span { color: var(--suite-accent); font-weight: 750; text-transform: uppercase; letter-spacing: .07em; }
+
+/* Shared form grammar; original selectors, IDs and behavior remain untouched. */
+.container, .wrap, .suite { width: min(100%, 980px) !important; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
+.header, .wrap > header, .page-header { text-align: left !important; margin-bottom: 1.75rem !important; padding: 0 !important; border: 0 !important; }
+.header h1, .wrap > header h1, .page-header h1 {
+  color: var(--suite-ink) !important; font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.65rem) !important; font-weight: 600 !important; letter-spacing: -.035em !important;
+}
+.header p, .subtitle, .page-header p { color: var(--suite-muted) !important; max-width: 720px; line-height: 1.6 !important; }
+.card, .wrap > section, #output-section {
+  background: var(--suite-sheet) !important; color: var(--suite-ink) !important; border: 1px solid var(--suite-line) !important;
+  border-radius: var(--suite-radius) !important; box-shadow: var(--suite-shadow) !important;
+}
+.card { margin-bottom: 1rem; }
+.wrap > section, #output-section { padding: 1.5rem !important; margin-bottom: 1rem !important; }
+label, .section-label, .exhibit-tag { color: var(--suite-ink-2) !important; letter-spacing: .045em; }
+input, textarea, select {
+  background: #fff !important; color: var(--suite-ink) !important; border: 1px solid #bfc5ca !important;
+  border-radius: 6px !important; min-height: 44px; font: inherit !important;
+}
+input:hover, textarea:hover, select:hover { border-color: #82909a !important; }
+input:focus, textarea:focus, select:focus { border-color: var(--suite-accent) !important; box-shadow: 0 0 0 3px rgba(36,91,120,.16) !important; outline: none !important; }
+button, [role="button"], .tab, .pill, .template-btn { min-height: 40px; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid rgba(36,91,120,.28) !important; outline-offset: 2px; }
+.generate-btn, button.generate, .btn-copy {
+  background: var(--suite-accent) !important; color: white !important; border-color: var(--suite-accent) !important;
+  border-radius: 6px !important; box-shadow: none !important;
+}
+.generate-btn:hover, button.generate:hover, .btn-copy:hover { background: #194862 !important; transform: translateY(-1px); }
+.generate-btn:disabled { background: #929ba3 !important; border-color: #929ba3 !important; cursor: not-allowed; }
+.copy-btn, button.copy, .btn-expand, .lang-btn { border-radius: 5px !important; }
+.output-box, #prompt-output, .ptext {
+  background: #f4f1e9 !important; color: #26364a !important; border-color: var(--suite-line) !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important; line-height: 1.7 !important;
+}
+.mode-card, .template-btn, .tab, .toggle-row, .guardrail-detail { border-radius: 6px !important; box-shadow: none !important; }
+.mode-card:hover, .template-btn:hover, .tab:hover { transform: none !important; border-color: var(--suite-accent) !important; }
+.mode-card.active, .template-btn.active, .tab.active { border-color: var(--suite-accent) !important; background: var(--suite-accent-soft) !important; color: var(--suite-ink) !important; }
+.guardrail-badge { border-radius: 4px !important; }
+.lang-switcher, .lang-switch { float: right; }
+.case-no, .eyebrow { color: var(--suite-accent) !important; }
+.suite .card { border-left: 4px solid var(--accent) !important; overflow: hidden; }
+.suite .card-header { padding: 1.25rem 1.35rem; }
+.suite .ptext { border: 0 !important; }
+.suite .fade-out { background: linear-gradient(to bottom, rgba(255,253,248,0), var(--suite-sheet)) !important; }
+
+@media (max-width: 700px) {
+  body { padding-inline: .75rem !important; }
+  .suite-nav { min-height: 58px; }
+  .suite-brand small, .suite-links > a:not(:first-child) { display: none; }
+  .suite-menu-panel { position: fixed; top: 62px; left: .75rem; right: .75rem; }
+  .suite-context { align-items: flex-start; }
+  .card, .wrap > section, #output-section { padding: 1rem !important; }
+  .suite .card { padding: 0 !important; }
+  .card-header { align-items: flex-start !important; flex-wrap: wrap; }
+  .card-header .btn-copy { width: 100%; justify-content: center; }
+  .exhibits { grid-template-columns: 1fr !important; }
+  .output-meta, .output-bar { gap: .75rem; flex-wrap: wrap; }
+  button, .generate-btn, button.generate { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+</style>
+    <script>document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[onclick]:not(button):not(a)').forEach((el) => {
+    if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
+  });
+  document.querySelectorAll('.suite-menu-panel a').forEach((link) => {
+    if (link.href === location.href) link.setAttribute('aria-current', 'page');
+  });
+});
+</script>
+<style id="oficina-unificado">
+/* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
+   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+.nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
+.nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
+.nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
+.nlm-nav .nlm-active{color:var(--suite-accent,#245b78)!important;border-bottom-color:var(--suite-accent,#245b78)!important;background:none!important;font-weight:600}
+.nlm-nav .nlm-home{font:600 15px/1 Georgia,'Times New Roman',serif!important;color:var(--suite-ink,#17243a)!important;border-right:1px solid var(--suite-line,#d8d2c5)!important;padding:6px 14px 6px 2px!important;margin-right:8px!important;letter-spacing:0!important}
+.nlm-nav .nlm-clear{margin-left:auto;background:none;border:1px solid transparent;border-radius:5px;padding:5px 10px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-muted,#657186);cursor:pointer;min-height:0}
+.nlm-nav .nlm-clear:hover{color:var(--suite-ink,#17243a);border-color:var(--suite-line,#d8d2c5)}
+.nlm-nav .nlm-clear.armado{color:var(--suite-danger,#a7443d);border-color:var(--suite-danger,#a7443d)}
+/* Laboratório */
+.template-btn,.template-btn.inter{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important;color:var(--suite-ink)!important}
+.template-btn.active,.template-btn.inter.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.section-label.interdisciplinar{color:var(--suite-ink-2)!important}
+.section-label::after,.section-label.interdisciplinar::after{background:var(--suite-line)!important}
+.template-btn .format-tag{background:transparent!important;color:var(--suite-accent)!important;border-color:var(--suite-line)!important}
+.container{margin-top:1.5rem!important}
+.toggle-row{background:var(--suite-sheet)!important}
+.char-count{background:transparent!important;padding-left:0!important;color:var(--suite-muted)!important}
+.medidor:not(.excesso) .barra i{background:var(--suite-accent)!important}
+.toggle-row.on{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.toggle-switch.on{background:var(--suite-accent)!important}
+.generate-btn{box-shadow:none!important}
+/* Studio */
+.mode-card{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important}
+.mode-card.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+/* Dossiê: rótulos e botões em sans; só o prompt gerado fica monoespaçado */
+.wrap{--mono:Inter,ui-sans-serif,system-ui,sans-serif}
+/* Suite: um só acento, sem faixa colorida por cartão */
+.card.sp,.card.na,.card.rf{--accent:var(--suite-accent)!important;--tint:var(--suite-accent-soft)!important;border-left:1px solid var(--suite-line)!important}
+.card .icon{--tint:var(--suite-accent-soft)!important}
+.suite{margin-top:1.5rem!important}
+.chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
+.hint{color:var(--suite-ink-2)!important}
+</style>
+</head>
+
+<body>
+<nav class="nlm-nav"><a class="nlm-home" href="index.html">Oficina ↗</a><a href="suite.html">Suite</a><a href="dossie.html">Dossiê</a><a href="lab.html" class="nlm-active">Lab</a><a href="studio.html">Studio</a><div class="nlm-lang"><button class="nlm-lang-btn nlm-lang-on" id="nlm-btn-pt" onclick="setLang('pt')">PT</button><button class="nlm-lang-btn" id="nlm-btn-en" onclick="setLang('en')">EN</button></div><button class="nlm-clear" type="button" onclick="limparCampos(this)" title="Apaga o texto digitado nesta página">Limpar campos</button></nav>
+<style>.lang-switch,.lang-btn-group,#btnEN,#btnPT{display:none!important}</style>
+
+    
+    <div class="container">
+        <div class="header">
+            <div><button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button><button class="lang-btn"
+                    id="btnPT" onclick="setLang('pt')" style="border-left:none;" class="lang-btn">PT</button></div>
+            <h1 id="h-title">Academic Prompt Lab</h1>
+            <p id="h-sub">Advanced toolkit for deep analysis, interdisciplinary synthesis and epistemic guardrails</p>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <label id="lbl-type" for="reportType">Desired Report Type:</label>
+                <input type="text" id="reportType" oninput="updateBudget()" placeholder="Describe the type of analysis you need...">
+            </div>
+
+            <div class="input-section">
+                <div class="section-label" id="sec-source">Source Analysis</div>
+                <div class="templates" id="tpl-base"></div>
+
+                <div class="section-label interdisciplinar" id="sec-inter" style="margin-top:1.25rem;">Interdisciplinary
+                    Multi-source Synthesis</div>
+                <div class="templates" id="tpl-inter"></div>
+            </div>
+
+            <div class="input-section">
+                <label for="customFocus" id="lbl-focus">Specific Focus <span id="recommendedLabel"
+                        class="recommended-badge" style="display:none;">(recommended)</span>:</label>
+                <textarea id="customFocus" rows="3" oninput="updateBudget()"
+                    placeholder="Describe specific aspects to prioritize in the analysis..."></textarea>
+                <div class="char-count" id="focusBudget"></div>
+                <div id="focusHintBox">
+                    <div id="focusHintTitle">💡 For best results, include:</div>
+                    <div id="focusHintText"></div>
+                </div>
+            </div>
+
+            <div class="toggle-row" id="guardrailToggle" onclick="toggleGuardrail()">
+                <div class="toggle-switch" id="toggleSwitch">
+                    <div class="toggle-knob"></div>
+                </div>
+                <span class="toggle-label" id="lbl-guardrail">🛡️ Rigorous Mode (Guardrail)</span>
+                <span class="toggle-desc" id="desc-guardrail">Adds author/work references and reference list at the
+                    end</span>
+            </div>
+
+            <div id="guardrailWarning" style="display:none; align-items:flex-start; gap:.6rem; padding:.7rem 1rem; margin:-0.5rem 0 1rem; border-radius:6px; border:1px solid #f59e0b; background:#1a1500; font-size:.8rem; color:#f59e0b; line-height:1.5;">
+                <span style="flex-shrink:0; margin-top:1px;">⚠</span>
+                <span id="guardrailWarningText">Rigorous Mode disabled with multi-source synthesis active. Inferences and claims will not be flagged automatically. Style rules remain in place.</span>
+            </div>
+
+            <div class="toggle-row" id="podcastToggle" onclick="togglePodcast()">
+                <div class="toggle-switch" id="podcastSwitch">
+                    <div class="toggle-knob"></div>
+                </div>
+                <span class="toggle-label" id="lbl-podcast">🎙️ Podcast Mode</span>
+                <span class="toggle-desc" id="desc-podcast">Scope control and anti-hallucination for Audio
+                    Overview</span>
+            </div>
+
+            <button class="generate-btn" onclick="generatePrompt()" id="btn-generate">🚀 Generate Prompt</button>
+        </div>
+
+        <div class="card" id="outputSection" style="display:none;">
+            <div class="output-header">
+                <h3 id="lbl-output">Generated Prompt</h3>
+                <button class="copy-btn" onclick="copyToClipboard()">
+                    <span id="copyIcon">📋</span><span id="copyText">Copy</span>
+                </button>
+            </div>
+            <div class="output-box" id="promptOutput"></div>
+            <div class="char-count" id="charCount"></div>
+        </div>
+    </div>
+
+    <script>
+        let lang = 'pt';
+        let activeTemplate = null;
+/* ── Destino do prompt e guardrails ───────────────────────────────────
+   Origem canônica dos guardrails: suite.html, const SP.
+   O painel Studio do NotebookLM não herda o campo Custom Instructions e
+   roda outro modelo, mais rápido e de qualidade inferior. Prompts com
+   destino "studio" carregam os guardrails inline; prompts com destino
+   "chat" os herdam do system prompt e não devem repeti-los.
+   Cópia replicada em dossie.html, lab.html e studio.html: as páginas são
+   standalone, sem build. Ao editar uma, edite as três. */
+const CITACAO_ESCRITA=`<citacao>Abra com a seção Fontes: uma linha por fonte usada, ETIQUETA — nome-arquivo.ext, cap. X(.Y). A etiqueta é o sobrenome do autor em maiúsculas, ou palavras do título quando não houver autor, e não muda. No corpo, cada afirmação leva ETIQUETA [n] na mesma frase, sem repetir arquivo nem capítulo. Nunca remova o [n]: é ele que gera o link clicável. Em trecho contínuo da mesma fonte, cite só na primeira frase.</citacao>`;
+
+/* Em áudio não há índice clicável nem seção a consultar: a atribuição precisa
+   caber na fala, ou o apresentador lê "colchete um" em voz alta. */
+const CITACAO_FALADA=`<citacao>Nomeie a fonte em voz alta quando a procedência mudar: "no livro de Setiya", "no relatório sobre o fígado". Não leia nome de arquivo, capítulo nem índice numérico: em áudio viram ruído.</citacao>`;
+
+function guardrails(falada){return `<guardrails>
+${falada?CITACAO_FALADA:CITACAO_ESCRITA}
+
+<inferencia>Apresente a posição de cada fonte separadamente antes de qualquer síntese. Toda conexão que você constrói entre elas é marcada como sua: "Infiro X juntando A e B; nenhuma fonte afirma isso diretamente."${falada?'':' Vale sobretudo em tabelas, onde a inferência se disfarça de dado.'}</inferencia>
+
+<divergencia>Preserve o conflito entre fontes. Ele é o achado, não um problema a resolver.</divergencia>
+
+<lacuna>"As fontes não abordam este ponto" é resposta válida. Não preencha silêncio com suposição, nem trate ausência como falsidade.</lacuna>
+
+<incerteza>Quantifique evidência fraca em vez de suavizá-la. Sem "provavelmente", sem "é razoável supor".</incerteza>${falada?'':`
+
+<bibliografia>Não fabrique DOI, página, editora, cidade, ano ou ISBN ausente da fonte. Campo ausente é marcado como ausente.</bibliografia>`}
+</guardrails>`;}
+
+/* Fidelidade: a ressalva que a fonte não traz é uma distorção dela. Vale
+   sempre, como o <estilo>, e não responde à chave de guardrails. A cláusula
+   final evita que ela anule os templates que pedem crítica. Mesma regra no
+   SP da suite.html, para os prompts que vão ao chat. */
+const FIDELIDADE=`<fidelidade>
+Reconstrua o argumento de cada fonte com a força que o autor lhe deu, até as conclusões dele e no tom dele.
+Não acrescente ressalva, "outro lado" nem aviso de controvérsia que a fonte não traga: equilibrá-la com o que ela não diz é distorcê-la.
+Crítica, quando pedida, vem depois da reconstrução, marcada como sua.
+</fidelidade>`;
+
+const ESTILO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Cada parágrafo cumpre uma função: atribuir, comparar, contestar, demonstrar ou declarar um limite.
+Corte dramatização, título grandioso, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+Elimine toda frase cuja retirada não altere a informação, a evidência ou o raciocínio.
+</estilo>`;
+
+/* Em áudio não há parágrafo nem título: as regras de economia do texto
+   escrito saem, e ficam as que valem para a fala. */
+const ESTILO_FALADO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Corte dramatização, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+</estilo>`;
+
+const TETOS={custom:10000,chat:4000,studio:5000};
+const DESTINO_ROTULO={custom:'Custom Instructions',chat:'Chat principal',studio:'Painel Studio'};
+
+/* Medidor de destino e consumo do teto. Devolve HTML para um único elemento,
+   para não exigir marcação nova em cada página. */
+function medidorHtml(n,destino){
+  const teto=TETOS[destino],pct=Math.min(100,Math.round(n/teto*100));
+  return `<span class="medidor${n>teto?' excesso':''}">`
+    +`<span class="destino">${DESTINO_ROTULO[destino]}</span>`
+    +`<span class="barra"><i style="width:${pct}%"></i></span>`
+    +`<span class="numero">${n.toLocaleString('pt-BR')} / ${teto.toLocaleString('pt-BR')}</span>`
+    +`</span>`;
+}
+
+/* <fidelidade> e <estilo> acompanham sempre o destino Studio: o estilo barra
+   a analogia inventada, a fidelidade barra a ressalva inventada, e desligar
+   guardrails para ganhar espaço não deve devolvê-las. Só o bloco epistêmico
+   responde à chave. Em áudio o bloco epistêmico perde a bibliografia e a
+   menção a tabelas, que não existem na fala. */
+function comGuardrails(corpo,destino,opcoes){
+  const o=opcoes||{};
+  if(destino!=='studio')return corpo.trimEnd();
+  const partes=[corpo.trimEnd()];
+  if(o.epistemico!==false)partes.push(guardrails(o.falada===true));
+  partes.push(FIDELIDADE,o.falada===true?ESTILO_FALADO:ESTILO);
+  return partes.join('\n\n');
+}
+
+        let guardrailOn = true; // padrão ON — NotebookLM aluciona mesmo em fonte única
+        let podcastOn = false;
+
+        // Templates que operam sobre múltiplas fontes — guardrail obrigatório
+        const INTER_TEMPLATES = new Set(['cartography', 'convergences', 'bridges', 'synthesis', 'tension']);
+
+        // Templates cuja estrutura argumentativa (posições opostas, fundamentadas nas fontes)
+        // se encaixa melhor no formato "Debate" do Audio Overview do NotebookLM do que no Deep Dive.
+        const DEBATE_TEMPLATES = new Set(['dialectic', 'antithesis', 'tension']);
+
+        // ── i18n strings ──────────────────────────────────────────────────────────────
+        const i18n = {
+            en: {
+                title: 'Academic Prompt Lab',
+                sub: 'Advanced toolkit for deep analysis, interdisciplinary synthesis and epistemic guardrails',
+                lblType: 'Desired Report Type:',
+                typePlaceholder: 'Describe the type of analysis you need...',
+                secSource: 'Source Analysis',
+                secInter: 'Interdisciplinary Multi-source Synthesis',
+                lblFocus: 'Specific Focus',
+                focusPlaceholder: 'Describe specific aspects to prioritize in the analysis...',
+                recommended: '(recommended)',
+                hintTitle: '💡 For best results, include:',
+                lblGuardrail: '🛡️ Rigorous Mode (Guardrail)',
+                descGuardrail: 'Marks inferences, preserves divergences, prevents bibliographic fabrication',
+                descGuardrailOn: 'Active — inference marking, divergence preservation, safe citations',
+                lblPodcast: '🎙️ Podcast Mode (Deep Dive)',
+                descPodcast: 'Strict scope, no preamble, hosts argue as the author — for Deep Dive',
+                descPodcastOn: 'Active — scope limited to sources, no program intro, hosts argue as the author',
+                btnGenerate: '🚀 Generate Prompt',
+                lblOutput: 'Generated Prompt',
+                copy: 'Copy', copied: 'Copied!',
+                charLimit: (n) => `${n} characters (NotebookLM limit: 5000)`,
+                charWarn: (n) => `⚠️ ${n} characters — exceeds NotebookLM limit (5000). Consider disabling Rigorous Mode or reducing Specific Focus.`,
+                budgetAvailable: (n) => `${n} characters available for Specific Focus (estimate — depends on template and active features)`,
+                budgetOver: (n) => `⚠️ Already ${n} characters over the NotebookLM limit (5000), even with Specific Focus empty. Disable Podcast Mode or pick a lighter template.`,
+                guardrailWarningText: 'Rigorous Mode disabled with multi-source synthesis active. Inferences and claims will not be flagged automatically. Style rules remain in place.',
+                alertType: 'Please specify the desired report type.',
+                templates: [
+                    { id: 'reference', icon: '📋', label: 'Reference File' },
+                    { id: 'project', icon: '🎯', label: 'Project Synthesis' },
+                    { id: 'essay', icon: '✍️', label: 'Essay Questions' },
+                    { id: 'themes', icon: '🗺️', label: 'Theme Mapper' },
+                    { id: 'gaps', icon: '🔍', label: 'Gap Analysis' },
+                    { id: 'coding', icon: '🧬', label: 'Thematic Coding' },
+                    { id: 'assumptions', icon: '🔎', label: 'Assumption Map' },
+                    { id: 'podcast', icon: '🎙️', label: 'Podcast Script' },
+                    { id: 'dialectic', icon: '⚖️', label: 'Dialectical Lens' },
+                    { id: 'disillusion', icon: '🔓', label: 'Disillusion Filter' },
+                    { id: 'antithesis', icon: '🔄', label: 'Antithesis Method' },
+                    { id: 'feynman', icon: '💡', label: 'Feynman Technique' },
+                    { id: 'litmap', icon: '🌐', label: 'Literature Map' },
+                    { id: 'glossary', icon: '📖', label: 'Contextual Glossary' },
+                    { id: 'timeline', icon: '📅', label: 'Timeline' },
+                ],
+                interTemplates: [
+                    { id: 'cartography', icon: '🗂️', label: 'Disciplinary Cartography' },
+                    { id: 'convergences', icon: '↔️', label: 'Convergences & Divergences' },
+                    { id: 'bridges', icon: '🌉', label: 'Conceptual Bridges' },
+                    { id: 'synthesis', icon: '🔀', label: 'Synthesis Pathways' },
+                    { id: 'tension', icon: '⚡', label: 'Productive Tensioning' },
+                ],
+                typeValues: {
+                    reference: 'consultative reference file with citations and epistemological mapping',
+                    project: 'thematic synthesis for original research development',
+                    essay: 'extraction of complex essay questions and critical problematisations',
+                    themes: 'macro-theme mapping with fundamental questions for in-depth discussion',
+                    gaps: 'systematic analysis of methodological, theoretical and empirical gaps with derived research questions',
+                    coding: 'thematic analysis with rigorous coding, pattern identification and triangulation of findings',
+                    assumptions: 'mapping of hidden assumptions with development of grounded alternative interpretations',
+                    podcast: 'modular podcast script with narrative architecture and implementable scripts for NotebookLM',
+                    dialectic: 'structured academic debate between opposing perspectives grounded in the sources',
+                    disillusion: 'critical analysis from the perspective of someone who examined and identified limitations of a given theory',
+                    antithesis: 'identification of central theses and systematic development of counterpositions',
+                    feynman: 'pedagogical analysis with conceptual clarification, gap identification and mental model construction',
+                    litmap: 'systematic literature mapping with analysis of debates, traditions and theoretical frameworks',
+                    glossary: 'contextual glossary with precise definitions of key terms extracted from the sources',
+                    timeline: 'detailed chronological timeline with ordered events and main cast of characters',
+                    cartography: 'disciplinary cartography mapping how each intellectual tradition inhabits the same problem',
+                    convergences: 'systematic mapping of genuine convergences, irreducible divergences and zones of productive tension between heterogeneous sources',
+                    bridges: 'identification of conceptual bridges and false cognates between distinct disciplinary traditions',
+                    synthesis: 'mapping of possible synthesis pathways with explicit costs and trade-offs of each route',
+                    tension: 'productive tensioning between sources from distinct traditions to generate illuminating epistemic friction',
+                },
+                focusPlaceholders: {
+                    assumptions: 'E.g.: the belief, theory or interpretation to be examined; the field where it operates; an initial suspicion about a hidden assumption…',
+                    project: 'E.g.: how the central concept connects to your project; relevant geographic or institutional context; what type of transfer you need: conceptual, methodological, or empirical?',
+                    dialectic: 'E.g.: the two competing perspectives; the specific point of divergence; whether the perspectives appear in the sources or should be inferred…',
+                    disillusion: 'E.g.: the theory or belief to be critically examined; what initially made it persuasive; what kind of evidence or argument generated the disillusionment…',
+                    antithesis: 'E.g.: which central thesis should have its antithesis developed; whether the focus is on ontological, methodological, or normative contradictions…',
+                    podcast: 'E.g.: target audience (specialist or lay?); approximate desired duration; tone: conversational, formal, provocative? Is there a specific concept for the central "hook"?',
+                    cartography: 'E.g.: list the disciplinary traditions present (e.g. technical, sociological, philosophical); the central problem they all address; which tradition carries the most weight in the notebook.',
+                    convergences: 'E.g.: pair of traditions to compare; a point where you suspect apparent convergence; a point where you suspect irreducible divergence.',
+                    bridges: 'E.g.: a term that appears in distinct traditions with possibly different meanings; the disciplinary traditions involved.',
+                    synthesis: 'E.g.: which central tension you want to resolve (or keep productive); what constraints your synthesis must not violate.',
+                    tension: 'E.g.: the two sources or traditions to confront directly; which aspect of the problem you want to illuminate through friction.',
+                },
+                focusHints: {
+                    assumptions: '• The belief, theory or interpretation to be examined<br>• The field or context where it operates<br>• An initial suspicion about which assumption may be hidden',
+                    project: '• How the central concept connects to your project<br>• Relevant geographic or institutional context<br>• What type of transfer you need: conceptual, methodological, or empirical?',
+                    dialectic: '• The two competing perspectives (e.g. "Perspective A × Perspective B")<br>• The specific point of divergence<br>• Whether the perspectives are in the sources or should be inferred from them',
+                    disillusion: '• The theory or belief to be critically examined<br>• What initially made it persuasive<br>• What kind of evidence or argument generated the disillusionment',
+                    antithesis: '• Which central thesis should have its antithesis developed<br>• Whether the focus is on ontological, methodological, or normative contradictions',
+                    podcast: '• Target audience (specialist or lay?)<br>• Approximate desired duration<br>• Tone: conversational, formal, provocative?<br>• Is there a specific concept for the central "hook"?',
+                    cartography: '• List the disciplinary traditions present (e.g. technical, sociological, philosophical)<br>• The central problem they all try to answer<br>• Which tradition has the most weight in the notebook',
+                    convergences: '• Pair of traditions to compare (e.g. technical vs philosophical)<br>• A point where you suspect apparent convergence<br>• A point where you suspect irreducible divergence',
+                    bridges: '• A term that appears in distinct traditions with possibly different meanings<br>• The disciplinary traditions involved',
+                    synthesis: '• Which central tension you want to resolve (or keep productive)<br>• What constraints your synthesis must not violate (e.g. must be applicable to the Brazilian context)',
+                    tension: '• The two sources or traditions to confront directly<br>• Which aspect of the problem you want to illuminate through friction',
+                },
+                guardrail: `\n\n**EPISTEMIC GUARDRAILS (ACTIVE)**:\n• Inference vs. extraction: when drawing connections across sources, mark explicitly — "Inferring X from [A] + [B]; neither source states this directly." This is especially critical in tables or parallel comparisons.\n• Claims: cite author/work when introducing relevant assertions. Paraphrase over direct quotes.\n• Divergences: preserve without harmonising. If sources conflict, that conflict is the finding, not a problem to resolve.\n• Gaps: "The sources do not address this" is a valid and necessary answer — do not fill silences.\n• Synthesis: present each source's position separately before any cross-source synthesis. Mark syntheses as analyst interpretation, not as direct claims from the sources.\n• References: cite sources by the titles/authors visible in the notebook. Do not fabricate DOIs, page numbers or bibliographic details not explicitly present in the source material.`,
+                podcastMode: `\n\n**PODCAST MODE (DEEP DIVE) — ACTIVE GUIDELINES**:\n• STRICT SCOPE: Discuss only what is in the notebook's documents. No external data, statistics or theoretical references.\n• OPENING: Start with the content, without introducing the program.\n• VOICE: The hosts present each argument as someone defending it, not as someone assessing it from outside.`,
+                basePrompt: `Analyse the provided sources and produce a customised report of the type: **{TYPE}**\n\n**ANALYTICAL STRUCTURE**: Organise the report into functional sections suited to the specified objective, prioritising elements most relevant to the requested analysis type.\n\n**INVESTIGATIVE COMPONENTS**: For each section, implement appropriate analytical strategies:\n- Conceptual extraction with terminological preservation where necessary\n- Argumentative mapping identifying logical and evidential structure\n- Identification of epistemological and methodological affiliations\n- Systematisation of disciplinary intersections and theoretical dialogues\n- Problematisation of internal tensions and methodological blind spots\n\n**OUTPUT MODALITIES**: Calibrate format according to intended function:\n- For reference: emphasis on synthesis, located citations and cross-referencing\n- For project: focus on applicability, conceptual transferability and investigative agenda\n- For essay: priority on problematisations and conceptual experiments\n- For study: exhaustive mapping and argumentative development\n\n**METHODOLOGICAL RIGOUR**: Maintain factual precision, textual economy and adequacy for postgraduate level. Preserve necessary conceptual complexity.\n\n**GUIDING QUESTIONS**: Formulate analytical questions that: require articulation of multiple aspects; demand theoretically grounded positioning; stimulate critical analysis of assumptions; preclude synthetic or binary answers.\n\n**ACADEMIC CONNECTIVITY**: Identify articulations with other fields, related theoretical traditions and contemporary research agendas.`,
+                specificInstructions: {
+                    gaps: `\n\n**SPECIFIC GUIDELINES FOR GAP ANALYSIS**:\nSystematically identify three categories:\n(a) **Methodological**: absences in approaches, techniques or instruments\n(b) **Theoretical**: conceptual gaps, unapplied frameworks, absent dialogues\n(c) **Empirical/Contextual**: unstudied populations, unexplored contexts\n\nFor each gap: brief description (one sentence) + evidencing source + derived research question.`,
+                    coding: `\n\n**SPECIFIC GUIDELINES FOR THEMATIC CODING**:\nThree-step process:\n1. **Initial Coding**: meaningful patterns, key phrases, preserved emic terminology.\n2. **Theme Development**: grouping into themes, hierarchies, frequency and distribution.\n3. **Triangulation**: coherence, alternative interpretations, tensions and deviant cases.\nPresent in auditable format.`,
+                    assumptions: `\n\n**SPECIFIC GUIDELINES FOR ASSUMPTION MAP**:\n\nThe goal is not to describe what the sources say about a concept — it is to expose what they *assume without stating*, and show how analysis would change if those foundations were different.\n\n**1. CONTEXTUALISATION**\nDescribe the theory, interpretation or practice to be examined. Why does it seem natural or obvious in the field? What problem does it propose to solve?\n\n**2. EXCAVATING FOUNDATIONS**\nIdentify underlying assumptions — from most visible to most opaque. For each assumption:\n- How does it manifest in the text (citation or paraphrase)?\n- Why doesn't it appear explicitly?\n- What intellectual tradition sustains it?\n- What questions does it make impossible to formulate?\n- How would conclusions change if this assumption were abandoned?\n\nProgress in order: from most evident to most structural.\n\n**3. ALTERNATIVE INTERPRETATIONS**\nFor each plausible alternative:\n- How does it reconceptualise the same phenomenon?\n- What assumptions does it adopt as replacements?\n- What evidence from the material does it privilege (that the original interpretation minimises)?\n- What unique insight does it offer?\n\n**4. REFLEXIVE SYNTHESIS**\nWhat does the multiplicity of interpretations reveal about the phenomenon that no single interpretation can see? What questions remain genuinely open?`,
+                    podcast: `\n\n**SPECIFIC GUIDELINES FOR PODCAST SCRIPT**:\n\n**FUNDAMENTAL INSTRUCTIONS**:\n- Focus ONLY on content extracted directly from the sources\n- Use DIRECT SCRIPTS: "Say exactly: [text]" or "Begin by explaining that [concept]"\n- DO NOT mention: tone of voice, music, pauses, intonations (does not work in NotebookLM)\n\n**SEGMENT 1 — OPENING**: Opening script + essential context + narrative hook + roadmap of points.\n\n**SEGMENT 2 — DEVELOPMENT**: 3 conceptual points from the sources, each with implementable script and connections between them.\n\n**SEGMENT 3 — SYNTHESIS**: Recap + interdisciplinary connections + open question to the listener.\n\n**SEGMENT 4 (optional) — CLOSING**: Main takeaway + closing + reflection hook.\n\n✓ Works: "Say that...", scripts in quotes, rhetorical questions.\n✗ Does not work: "Use an enthusiastic tone", "Make a dramatic pause", vocal instructions.`,
+                    dialectic: `\n\n**SPECIFIC GUIDELINES FOR DIALECTICAL LENS**:\n\n**1. CENTRAL THESES** — 2-3 theses with specific citation and relevance in overall context.\n\n**2. OPPOSING PERSPECTIVES** — For each thesis, develop PERSPECTIVE A and PERSPECTIVE B: positioning, arguments, evidence, implications, epistemological tradition. Both grounded in the sources.\n\n**3. DIALECTICAL DIALOGUE** — Specific frictions, counter-arguments, privileged evidence, questions each perspective answers better, limitations.\n\n**4. CRITICAL SYNTHESIS** — Unique insights, what each interpretation reveals/obscures, possible third ways, explicit trade-offs.`,
+                    disillusion: `\n\n**SPECIFIC GUIDELINES FOR DISILLUSION FILTER**:\n\n**1. RECONSTRUCTION** — Theory's promises, its internal logic, why it is initially persuasive.\n**2. GENEALOGY OF DISILLUSIONMENT** — Unfulfilled promises, questionable assumptions, hidden costs.\n**3. CRITICAL RE-READING** — Internal tensions, resistant evidence, alternatives suggested but not developed.\n**4. ALTERNATIVE FRAMEWORK** — Reinterpretation of the same phenomena; what explains better.\n**5. META-CRITICAL SYNTHESIS** — What the disillusionment reveals, what insights it preserves, what epistemic vigilance it suggests.`,
+                    antithesis: `\n\n**SPECIFIC GUIDELINES FOR ANTITHESIS METHOD**:\n\n**1. THESES** — 3-5 theses: precise formulation, citation, assumptions, type (ontological, methodological, normative...).\n**2. ANTITHESES** — For each thesis: counterposition statement, grounding in sources, intellectual tradition, comparative analysis (what each privileges and answers better).\n**3. TENSION MAPPING** — Logical contradiction? Dialectical tension? Complementarity? Resolvable ambiguity?\n**4. SYNTHESIS STRATEGIES** — Dialectical synthesis / methodological pluralism / dissolution / incommensurability.\n**5. DERIVED QUESTIONS** — Empirical, thought experiments, limit cases, conditions of applicability.`,
+                    feynman: `\n\n**SPECIFIC GUIDELINES FOR FEYNMAN TECHNIQUE**:\n\n**1. CONCEPTUAL CLARIFICATION** — Reformulate without jargon, everyday analogies, decomposition into basic elements. Test: "How would you explain it to someone outside the field?"\n**2. GAPS** — Understanding (what sources assume), Justification (undemonstrated premises), Application (absent practical examples).\n**3. MENTAL MODELS** — Irreducible core, 2-3 analogies with their limits, concrete examples including limit cases.\n**4. QUESTIONS** — Testing deep understanding, practical application and interdisciplinary connections.`,
+                    litmap: `\n\n**SPECIFIC GUIDELINES FOR LITERATURE MAP**:\n\n**1. THEMATIC CLUSTERS** — 4-6 groups: sources, rationale, overlaps, isolated sources.\n**2. THEORETICAL FRAMEWORKS** — Traditions, key concepts, assumptions, dialogues vs. tensions.\n**3. METHODOLOGICAL APPROACHES** — Classification, innovations, strengths and limitations.\n**4. CENTRAL DEBATES** — 3-5 controversies: sources on each side, points of disagreement, current status.\n**5. GAPS** — Thematic, methodological, theoretical.\n**6. CITATION STRUCTURE** — Hubs, bridges between traditions, top 5-10 papers.\n**7. SYNTHESIS** — State of the art, consensuses, uncertainties, future agenda.`,
+                    glossary: `\n\n**SPECIFIC GUIDELINES FOR CONTEXTUAL GLOSSARY**:\n\nExtract 10-20 key terms. For each:\n\n**CONTEXTUAL DEFINITION** (2-4 sentences) — How used specifically in the sources; distinguish from generic usage.\n\n**ANALYTICAL EXPLANATION** (1-2 paragraphs) — Nuances, implications, connections with other concepts in the glossary.\n\nUse: Contrastive Comparison, Exemplification with passages, Historical tracing of the term, Cross-entry connections.\n\nOrganise alphabetically or by conceptual importance (state the criterion).`,
+                    timeline: `\n\n**SPECIFIC GUIDELINES FOR TIMELINE**:\n\n**PART 1 — EVENTS**: Date | Event | Summary (2-3 sentences) | Source | Status (CONFIRMED/INFERRED/UNCERTAIN). Strict chronological order. NEVER invent dates. For inferred ones, explain the basis.\n\n**PART 2 — CAST**: Full name | Role | Biography (3-4 sentences) | Timeline appearances | Sources.\n\n**CROSS-DOCUMENT SYNTHESIS**: Sequences only visible by combining sources; dating contradictions; significant temporal gaps. Cite specific source for each event.`,
+                    cartography: `\n\n**SPECIFIC GUIDELINES FOR DISCIPLINARY CARTOGRAPHY**:\n\nSources belong to distinct intellectual traditions (e.g. technical, social, philosophical). Map how EACH inhabits the same problem — do not produce premature synthesis.\n\n**1. TRADITIONS**: for each tradition present, state its sources, characteristic vocabulary, questions it can and CANNOT formulate (structural blind spots), and its core ontological/epistemological assumptions.\n\n**2. PROBLEM MAP**: select 3-5 central problems. For each, compare in a table how each tradition frames it, what evidence it mobilises, what solution it proposes, and its central assumption.\n\n**3. COMPARATIVE VOCABULARY**: table of terms each tradition uses for the same phenomena — flag genuine vs. false cognates.\n\n**4. STRUCTURAL ASYMMETRIES**: which tradition dominates the notebook (and what bias this introduces), which is under-represented, and which aspects only one tradition can articulate.\n\n**5. RESULTING MAP**: describe the notebook's "disciplinary landscape" — who speaks with whom, who ignores whom, where the walls and contact zones are.`,
+                    convergences: `\n\n**SPECIFIC GUIDELINES FOR CONVERGENCES & DIVERGENCES**:\n\nDistinguish: genuine convergence (independent paths, same conclusion) vs. apparent (same word, different meaning); irreducible divergence (premises, not data — no "solution") vs. resolvable (empirical/terminological, mediable).\n\n**1. CONVERGENCES**: for each, cite the sources, state precisely what they agree on, classify genuine vs. apparent, and explain the epistemic strength (if genuine) or the hidden difference (if apparent).\n\n**2. DIVERGENCES**: for each, cite the sources and the specific point, the type (premises/methods/data/values), and whether it's irreducible (state the core disagreement, don't harmonise) or resolvable (what would mediate it).\n\n**3. PRODUCTIVE TENSION**: which unresolved divergences ILLUMINATE something — what does each side reveal that the other can't see?\n\n**4. SUMMARY TABLE**: aspect, agreeing sources, disagreeing sources, type, resolvable?\n\n**5. IMPLICATIONS**: what only becomes visible by seeing convergences/divergences together; which consensuses are solid vs. merely apparent; which divergences reveal the field is split on premises.`,
+                    bridges: `\n\n**SPECIFIC GUIDELINES FOR CONCEPTUAL BRIDGES**:\n\nDistinct traditions often use similar concepts with different meanings, or different words for the same phenomenon. Map both.\n\n**1. GENUINE COGNATES** (same phenomenon, different vocabulary): for each pair, cite the term in each tradition, argue why it's the same phenomenon, what each tradition sees that the other doesn't, and which terminology captures which aspect better.\n\n**2. FALSE COGNATES** (same word, different phenomena): for each, cite the shared word and its definition/usage in each tradition, where the meaning diverges, what confusion this homonymy causes, and a disambiguation proposal if possible.\n\n**3. ORPHAN CONCEPTS**: which concepts in one tradition have no equivalent in the others, and what that absence reveals about what each tradition can think.\n\n**4. BRIDGE MAP**: table — concept/phenomenon, tradition A/B/C, relation type.\n\n**5. IMPLICATIONS FOR DIALOGUE**: typical interdisciplinary misunderstandings these sources reveal; where a reader would need a "translator"; which bridges would most facilitate dialogue.`,
+                    synthesis: `\n\n**SPECIFIC GUIDELINES FOR SYNTHESIS PATHWAYS**:\n\n**PREMISE**: Synthesizing heterogeneous sources is a CHOICE that resolves some tensions while sacrificing others. Map the available routes and their costs — there is no neutral synthesis.\n\n**STEP 0 — TENSION INVENTORY**: List irreducible tensions in the sources (ontological: what exists; epistemological: how we know; methodological: how we investigate; normative: what matters).\n\n**STEP 1 — ROUTES**: Identify 2-4 plausible synthesis pathways (e.g. "Instrumentalist Synthesis", "Methodological Pluralism"). For each route, state: its logic (how it integrates the sources); what it preserves from each tradition; what it sacrifices (and which perspective becomes subordinate); the assumptions required for it to work; whether any source suggests it; and which tradition gains or loses from it.\n\n**STEP 2 — SYNTHESIS OF SYNTHESES**: Which route is most faithful to the sources as-is? Which demands the most creative reinterpretation? Is there a coherent route no source suggests? Is there a tension NO route resolves — one that should be kept productive rather than closed?\n\n**STEP 3 — GROUNDED RECOMMENDATION**: Which route(s) best serve the user's objectives, and why — stated explicitly as INTERPRETATION, not a direct reading of the sources.`,
+                    tension: `\n\n**SPECIFIC GUIDELINES FOR PRODUCTIVE TENSIONING**:\n\nThe goal is not to resolve the conflict between traditions — it's to use the conflict to reveal what each leaves invisible.\n\n**1. PRODUCTIVE PAIRS**: Identify 2-3 source pairs from different traditions whose direct confrontation would generate maximum epistemic friction. Justify why each pair is especially productive.\n\n**2. CONFRONTATION PROTOCOL**: For each pair (A × B), work out what A would say about B (B's unacceptable assumption, the question A asks that B can't answer, the evidence B would struggle to absorb), what B would say about A (symmetrically), and what the confrontation illuminates — what becomes visible, and what question neither source could ask alone.\n\n**3. HIGH-YIELD FRICTIONS**: The most productive conflict points — where divergence isn't error but reveals deep structure. What does each friction teach about the limits of each tradition?\n\n**4. EMERGENT QUESTIONS**: List 5-8 questions that ONLY emerge from the tensioning, that no individual source would formulate.\n\n**5. METHODOLOGICAL REFLECTION**: What this exercise suggests about conducting research with these sources, and what epistemic stance the researcher needs to adopt.`,
+                },
+            },
+            pt: {
+                title: 'Laboratório de Prompts Acadêmicos',
+                sub: 'Toolkit avançado para análise profunda, síntese interdisciplinar e guardrails epistêmicos',
+                lblType: 'Tipo de Relatório Desejado:',
+                typePlaceholder: 'Descreva o tipo de análise que você precisa...',
+                secSource: 'Análise de Fonte(s)',
+                secInter: 'Síntese Multi-fonte Interdisciplinar',
+                lblFocus: 'Foco Específico',
+                focusPlaceholder: 'Descreva aspectos específicos que devem ser priorizados na análise...',
+                recommended: '(recomendado)',
+                hintTitle: '💡 Para melhores resultados, inclua:',
+                lblGuardrail: '🛡️ Modo Rigoroso (Guardrail)',
+                descGuardrail: 'Marca inferências, preserva divergências, previne fabricação bibliográfica. As regras de estilo valem mesmo desligado',
+                descGuardrailOn: 'Ativo — marcação de inferências, preservação de divergências, citações seguras',
+                lblPodcast: '🎙️ Modo Podcast (Deep Dive)',
+                descPodcast: 'Escopo estrito, sem preâmbulo, apresentadores defendem o argumento — para o Deep Dive',
+                descPodcastOn: 'Ativo — escopo restrito às fontes, sem abertura de programa, apresentadores defendem o argumento',
+                btnGenerate: '🚀 Gerar Prompt',
+                lblOutput: 'Prompt Gerado',
+                copy: 'Copiar', copied: 'Copiado!',
+                charLimit: (n) => `${n} caracteres (limite NotebookLM: 5000)`,
+                charWarn: (n) => `⚠️ ${n} caracteres — excede limite NotebookLM (5000). Considere desativar o Modo Rigoroso ou reduzir o Foco Específico.`,
+                budgetAvailable: (n) => `${n} caracteres disponíveis para o Foco Específico (estimativa — depende do template e das features ativas)`,
+                budgetOver: (n) => `⚠️ Já ${n} caracteres acima do limite do NotebookLM (5000), mesmo com o Foco Específico vazio. Desative o Modo Podcast ou escolha um template mais leve.`,
+                guardrailWarningText: 'Modo Rigoroso desativado com a síntese multi-fonte ativa. Inferências e afirmações não serão marcadas automaticamente. As regras de estilo continuam valendo.',
+                alertType: 'Por favor, especifique o tipo de relatório desejado.',
+                templates: [
+                    { id: 'reference', icon: '📋', label: 'Arquivo de Referência' },
+                    { id: 'project', icon: '🎯', label: 'Síntese para Projeto' },
+                    { id: 'essay', icon: '✍️', label: 'Questões Ensaísticas' },
+                    { id: 'themes', icon: '🗺️', label: 'Mapeador de Temas' },
+                    { id: 'gaps', icon: '🔍', label: 'Análise de Lacunas' },
+                    { id: 'coding', icon: '🧬', label: 'Codificação Temática' },
+                    { id: 'assumptions', icon: '🔎', label: 'Mapa de Pressupostos' },
+                    { id: 'podcast', icon: '🎙️', label: 'Roteiro Podcast' },
+                    { id: 'dialectic', icon: '⚖️', label: 'Lente Dialética' },
+                    { id: 'disillusion', icon: '🔓', label: 'Filtro Desilusão' },
+                    { id: 'antithesis', icon: '🔄', label: 'Método Antítese' },
+                    { id: 'feynman', icon: '💡', label: 'Técnica Feynman' },
+                    { id: 'litmap', icon: '🌐', label: 'Mapa Literatura' },
+                    { id: 'glossary', icon: '📖', label: 'Definidor Contextual' },
+                    { id: 'timeline', icon: '📅', label: 'Linha do Tempo' },
+                ],
+                interTemplates: [
+                    { id: 'cartography', icon: '🗂️', label: 'Cartografia Disciplinar' },
+                    { id: 'convergences', icon: '↔️', label: 'Convergências & Divergências' },
+                    { id: 'bridges', icon: '🌉', label: 'Pontes Conceituais' },
+                    { id: 'synthesis', icon: '🔀', label: 'Caminhos de Síntese' },
+                    { id: 'tension', icon: '⚡', label: 'Tensionamento Produtivo' },
+                ],
+                typeValues: {
+                    reference: 'arquivo de referência consultivo com citações e mapeamento epistemológico',
+                    project: 'síntese temática para desenvolvimento de pesquisa original',
+                    essay: 'extração de questões ensaísticas complexas e problematizações críticas',
+                    themes: 'mapeamento de macrotemas com questões fundamentais para discussão aprofundada',
+                    gaps: 'análise sistemática de lacunas metodológicas, teóricas e empíricas com questões de pesquisa derivadas',
+                    coding: 'análise temática com codificação rigorosa, identificação de padrões e triangulação de achados',
+                    assumptions: 'mapeamento de pressupostos ocultos com desenvolvimento de interpretações alternativas fundamentadas',
+                    podcast: 'roteiro modular para podcast com arquitetura narrativa e scripts implementáveis no NotebookLM',
+                    dialectic: 'debate acadêmico estruturado entre perspectivas opostas fundamentadas nas fontes',
+                    disillusion: 'análise crítica sob perspectiva de quem examinou e identificou limitações de determinada teoria',
+                    antithesis: 'identificação de teses centrais e desenvolvimento sistemático de contraposições',
+                    feynman: 'análise pedagógica com clarificação conceitual, identificação de lacunas e construção de modelos mentais',
+                    litmap: 'mapeamento sistemático de literatura com análise de debates, tradições e frameworks teóricos',
+                    glossary: 'glossário contextual com definições precisas de termos-chave extraídos das fontes',
+                    timeline: 'linha do tempo cronológica detalhada com eventos ordenados e elenco de personagens principais',
+                    cartography: 'cartografia disciplinar mapeando como cada tradição intelectual habita o mesmo problema',
+                    convergences: 'mapeamento sistemático de convergências genuínas, divergências irredutíveis e zonas de tensão produtiva entre fontes heterogêneas',
+                    bridges: 'identificação de pontes conceituais e falsos cognatos entre tradições disciplinares distintas',
+                    synthesis: 'mapeamento de caminhos de síntese possíveis com explicitação dos custos e sacrifícios de cada rota',
+                    tension: 'tensionamento produtivo entre fontes de tradições distintas para gerar fricção epistêmica iluminadora',
+                },
+                focusPlaceholders: {
+                    assumptions: 'Ex: a crença, teoria ou interpretação que será examinada; o campo onde opera; uma suspeita inicial sobre um pressuposto oculto…',
+                    project: 'Ex: como o conceito central se conecta ao seu projeto; contexto geográfico ou institucional relevante; que tipo de transferência você precisa: conceitual, metodológica ou empírica?',
+                    dialectic: 'Ex: as duas perspectivas em disputa (ex: "perspectiva A × perspectiva B"); o ponto específico de divergência; se as perspectivas estão nas fontes ou devem ser inferidas delas…',
+                    disillusion: 'Ex: a teoria ou crença que será examinada criticamente; o que inicialmente a tornava persuasiva; que tipo de evidência ou argumento gerou a desilusão…',
+                    antithesis: 'Ex: qual tese central deve ter sua antítese desenvolvida; se o foco é em contradições ontológicas, metodológicas ou normativas…',
+                    podcast: 'Ex: audiência-alvo (especializada ou leiga?); duração aproximada desejada; tom: conversacional, formal, provocativo? Há um conceito específico para ser o "gancho" central?',
+                    cartography: 'Ex: liste as tradições disciplinares presentes (ex: técnica, sociológica, filosófica); o problema central que todas tentam responder; qual tradição tem mais peso no notebook.',
+                    convergences: 'Ex: par de tradições a comparar (ex: técnica vs filosófica); um ponto onde você suspeita de convergência aparente; um ponto onde você suspeita de divergência irredutível.',
+                    bridges: 'Ex: um termo que aparece em tradições distintas com possíveis significados diferentes; as tradições disciplinares envolvidas.',
+                    synthesis: 'Ex: qual tensão central você quer resolver (ou manter produtiva); que restrições sua síntese não pode violar (ex: precisa ser aplicável ao contexto brasileiro).',
+                    tension: 'Ex: as duas fontes ou tradições a confrontar diretamente; que aspecto do problema você quer iluminar com a fricção.',
+                },
+                focusHints: {
+                    assumptions: '• A crença, teoria ou interpretação que será examinada<br>• O campo ou contexto onde ela opera<br>• Uma suspeita inicial sobre que pressuposto pode estar oculto',
+                    project: '• Como o conceito central se conecta ao seu projeto<br>• Contexto geográfico ou institucional relevante (ex: Brasil, UFMT)<br>• Que tipo de transferência você precisa: conceitual, metodológica ou empírica?',
+                    dialectic: '• As duas perspectivas em disputa (ex: "perspectiva A × perspectiva B")<br>• O ponto específico de divergência<br>• Se as perspectivas estão nas fontes ou devem ser inferidas delas',
+                    disillusion: '• A teoria ou crença que será examinada criticamente<br>• O que inicialmente a tornava persuasiva<br>• Que tipo de evidência ou argumento gerou a desilusão',
+                    antithesis: '• Qual tese central deve ter sua antítese desenvolvida<br>• Se o foco é em contradições ontológicas, metodológicas ou normativas',
+                    podcast: '• Audiência-alvo (especializada ou leiga?)<br>• Duração aproximada desejada<br>• Tom: conversacional, formal, provocativo?<br>• Há um conceito específico para ser o "gancho" central?',
+                    cartography: '• Liste as tradições disciplinares presentes (ex: técnica, sociológica, filosófica)<br>• O problema central que todas tentam responder<br>• Qual tradição tem mais peso no notebook',
+                    convergences: '• Par de tradições a comparar (ex: técnica vs filosófica)<br>• Um ponto onde você suspeita de convergência aparente<br>• Um ponto onde você suspeita de divergência irredutível',
+                    bridges: '• Um termo que aparece em tradições distintas com possíveis significados diferentes<br>• As tradições disciplinares envolvidas',
+                    synthesis: '• Qual tensão central você quer resolver (ou manter produtiva)<br>• Que restrições sua síntese não pode violar (ex: precisa ser aplicável ao contexto brasileiro)',
+                    tension: '• As duas fontes ou tradições a confrontar diretamente<br>• Que aspecto do problema você quer iluminar com a fricção',
+                },
+                /* Ressalva e analogia inventadas já são barradas por <fidelidade> e
+                   <estilo>, que acompanham todo prompt de destino Studio. Aqui fica
+                   só o que é próprio do áudio. */
+                podcastMode: [
+                  '<escopo_estrito>Discuta apenas o que está nos documentos do notebook. Sem dado, estatística ou referencial externo.</escopo_estrito>',
+                  '<abertura>Comece pelo conteúdo, sem apresentar o programa.</abertura>',
+                  '<voz>Os apresentadores expõem cada argumento como quem o defende, não como quem o avalia de fora.</voz>'
+                ].join('\n'),
+                basePrompt: [
+                  '<tipo_de_relatorio>{TYPE}</tipo_de_relatorio>',
+                  '',
+                  '<estrutura>Seções funcionais adequadas ao objetivo. Priorize o que o tipo pedido exige.</estrutura>',
+                  '',
+                  '<componentes>',
+                  '  <item>Conceitos, preservando a terminologia quando ela importar.</item>',
+                  '  <item>Estrutura argumentativa: lógica e evidência.</item>',
+                  '  <item>Filiação epistemológica e metodológica.</item>',
+                  '  <item>Intersecções com outros campos e tradições correlatas.</item>',
+                  '  <item>Tensões internas e pontos cegos.</item>',
+                  '</componentes>',
+                  '',
+                  '<modalidades>Consulta: síntese e citação localizada. Projeto: aplicabilidade e agenda investigativa. Ensaio: problematização. Estudo: mapeamento exaustivo.</modalidades>',
+                  '',
+                  '<nivel>Pós-graduação. Preserve a complexidade conceitual necessária, não mais que isso.</nivel>',
+                  '',
+                  '<questoes_orientadoras>Formule questões que exijam articular vários aspectos e posicionamento fundamentado. Nenhuma de resposta binária.</questoes_orientadoras>'
+                ].join('\n'),
+                specificInstructions: {
+                    gaps: [
+                      '<categorias>',
+                      '  <metodologicas>Ausências em abordagens, técnicas ou instrumentos.</metodologicas>',
+                      '  <teoricas>Gaps conceituais, frameworks não aplicados, diálogos ausentes.</teoricas>',
+                      '  <empiricas>Populações não estudadas, contextos inexplorados.</empiricas>',
+                      '</categorias>',
+                      '<por_lacuna>Descrição em uma frase, fonte que a evidencia, questão de pesquisa derivada.</por_lacuna>'
+                    ].join('\n'),
+                    coding: [
+                      '<etapa n="1" nome="codificacao_inicial">Padrões significativos, frases-chave, terminologia êmica preservada.</etapa>',
+                      '<etapa n="2" nome="desenvolvimento_tematico">Agrupamento em temas, hierarquias, frequência e distribuição.</etapa>',
+                      '<etapa n="3" nome="triangulacao">Coerência, interpretações alternativas, tensões e casos desviantes.</etapa>',
+                      '<formato>Apresente em formato auditável.</formato>'
+                    ].join('\n'),
+                    assumptions: [
+                      '<objetivo>Não descreva o que as fontes dizem sobre um conceito. Exponha o que assumem sem dizer, e como a análise mudaria se o fundamento fosse outro.</objetivo>',
+                      '<etapa n="1" nome="contextualizacao">A teoria, interpretação ou prática examinada. Por que parece óbvia no campo? Que problema resolve?</etapa>',
+                      '<etapa n="2" nome="escavacao">',
+                      '  <ordem>Do pressuposto mais evidente ao mais estrutural.</ordem>',
+                      '  <pergunta>Como se manifesta no texto (citação ou paráfrase), e por que não aparece explícito?</pergunta>',
+                      '  <pergunta>Que tradição intelectual o sustenta?</pergunta>',
+                      '  <pergunta>Que perguntas ele torna impossíveis de formular?</pergunta>',
+                      '  <pergunta>Como as conclusões mudariam sem ele?</pergunta>',
+                      '</etapa>',
+                      '<etapa n="3" nome="interpretacoes_alternativas">Como a alternativa reconceptualiza o mesmo fenômeno, que pressupostos adota em substituição, que evidências privilegia e a original minimiza, que insight único oferece.</etapa>',
+                      '<etapa n="4" nome="sintese_reflexiva">O que a multiplicidade de interpretações revela e nenhuma isolada vê. Que questões permanecem abertas.</etapa>'
+                    ].join('\n'),
+                    podcast: [
+                      '<fundamentos>Escreva scripts diretos: "Diga exatamente: [texto]", "Comece explicando que [conceito]".</fundamentos>',
+                      '<segmento n="1" nome="abertura">Script de abertura, contexto essencial, gancho narrativo, roadmap dos pontos.</segmento>',
+                      '<segmento n="2" nome="desenvolvimento">Três pontos conceituais das fontes, cada um com script implementável e conexão com os demais.</segmento>',
+                      '<segmento n="3" nome="sintese">Recapitulação, conexões interdisciplinares, questão aberta ao ouvinte.</segmento>',
+                      '<segmento n="4" nome="encerramento" opcional="sim">Takeaway principal, fechamento, gancho para reflexão.</segmento>',
+                      '<certo>"Diga que…", scripts entre aspas, perguntas retóricas.</certo>',
+                      '<errado>"Use tom entusiasmado", "Faça pausa dramática", qualquer instrução vocal.</errado>'
+                    ].join('\n'),
+                    dialectic: [
+                      '<etapa n="1" nome="teses_centrais">2 a 3 teses, cada uma com citação específica e relevância no contexto geral.</etapa>',
+                      '<etapa n="2" nome="perspectivas_opostas">Para cada tese, desenvolva a perspectiva A e a perspectiva B: posicionamento, argumentos, evidências, implicações, tradição epistemológica. Ambas fundamentadas nas fontes.</etapa>',
+                      '<etapa n="3" nome="dialogo">Fricções específicas, contra-argumentos, evidências privilegiadas, questões que cada perspectiva responde melhor, limitações.</etapa>',
+                      '<etapa n="4" nome="sintese_critica">Insights únicos, o que cada interpretação revela e obscurece, terceiras vias possíveis, trade-offs explícitos.</etapa>'
+                    ].join('\n'),
+                    disillusion: [
+                      '<etapa n="1" nome="reconstrucao">Promessas da teoria, lógica interna, por que ela persuade no início.</etapa>',
+                      '<etapa n="2" nome="genealogia_da_desilusao">Promessas não cumpridas, pressupostos questionáveis, custos ocultos.</etapa>',
+                      '<etapa n="3" nome="releitura_critica">Tensões internas, evidências resistentes, alternativas sugeridas e não desenvolvidas.</etapa>',
+                      '<etapa n="4" nome="framework_alternativo">Reinterprete os mesmos fenômenos. O que explica melhor?</etapa>',
+                      '<etapa n="5" nome="sintese_meta_critica">O que a desilusão revela, que insights preserva, que vigilância epistemológica sugere.</etapa>'
+                    ].join('\n'),
+                    antithesis: [
+                      '<etapa n="1" nome="teses">3 a 5 teses: formulação precisa, citação, pressupostos, tipo (ontológica, metodológica, normativa).</etapa>',
+                      '<etapa n="2" nome="antiteses">Para cada tese: enunciado da contraposição, fundamentação nas fontes, tradição intelectual, análise comparativa do que cada lado privilegia e responde melhor.</etapa>',
+                      '<etapa n="3" nome="mapa_de_tensoes">Classifique: contradição lógica, tensão dialética, complementaridade ou ambiguidade resolvível.</etapa>',
+                      '<etapa n="4" nome="estrategias_de_sintese">Síntese dialética, pluralismo metodológico, dissolução ou incomensurabilidade.</etapa>',
+                      '<etapa n="5" nome="questoes_derivadas">Empíricas, experimentos conceituais, casos-limite, condições de aplicabilidade.</etapa>'
+                    ].join('\n'),
+                    feynman: [
+                      '<etapa n="1" nome="clarificacao">Reformule sem jargão, com analogia do cotidiano e decomposição em elementos básicos. Teste: como explicaria a alguém fora da área?</etapa>',
+                      '<etapa n="2" nome="lacunas">Compreensão (o que as fontes assumem), justificação (premissas não demonstradas), aplicação (exemplos práticos ausentes).</etapa>',
+                      '<etapa n="3" nome="modelos_mentais">Núcleo irredutível, 2 a 3 analogias com seus limites, exemplos concretos incluindo casos-limite.</etapa>',
+                      '<etapa n="4" nome="questoes">Questões que testem compreensão profunda, aplicação prática e conexões interdisciplinares.</etapa>'
+                    ].join('\n'),
+                    litmap: [
+                      '<etapa n="1" nome="clusters_tematicos">4 a 6 grupos: fontes, justificativa, sobreposições, fontes isoladas.</etapa>',
+                      '<etapa n="2" nome="frameworks">Tradições, conceitos-chave, pressupostos, diálogos e tensões.</etapa>',
+                      '<etapa n="3" nome="metodologias">Classificação, inovações, pontos fortes e limitações.</etapa>',
+                      '<etapa n="4" nome="debates">3 a 5 controvérsias: fontes de cada lado, pontos de discordância, estado atual.</etapa>',
+                      '<etapa n="5" nome="lacunas">Temáticas, metodológicas, teóricas.</etapa>',
+                      '<etapa n="6" nome="estrutura_citacional">Hubs, pontes entre tradições, os 5 a 10 trabalhos mais centrais.</etapa>',
+                      '<etapa n="7" nome="sintese">Estado da arte, consensos, incertezas, agenda futura.</etapa>'
+                    ].join('\n'),
+                    glossary: [
+                      '<quantidade>10 a 20 termos-chave.</quantidade>',
+                      '<definicao_contextual>2 a 4 frases. Como o termo é usado nestas fontes; distinga do uso genérico.</definicao_contextual>',
+                      '<explicacao_analitica>1 a 2 parágrafos. Nuances, implicações, conexões com outros verbetes.</explicacao_analitica>',
+                      '<recursos>Comparação contrastiva, exemplificação com passagens, rastreamento histórico do termo, remissões entre verbetes.</recursos>',
+                      '<ordenacao>Alfabética ou por importância conceitual. Declare o critério escolhido.</ordenacao>'
+                    ].join('\n'),
+                    timeline: [
+                      '<parte n="1" nome="eventos">',
+                      '  <colunas>Data | Evento | Resumo em 2 a 3 frases | Fonte | Status</colunas>',
+                      '  <status>CONFIRMADO, INFERIDO ou INCERTO.</status>',
+                      '  <regra>Ordem cronológica estrita. Não invente datas. Para data inferida, declare a base da inferência.</regra>',
+                      '</parte>',
+                      '<parte n="2" nome="elenco">',
+                      '  <colunas>Nome completo | Papel | Biografia em 3 a 4 frases | Aparições na linha do tempo | Fontes</colunas>',
+                      '</parte>',
+                      '<sintese_cross_document>Sequências visíveis só ao combinar fontes, contradições de datação, gaps temporais significativos. Cite a fonte de cada evento.</sintese_cross_document>'
+                    ].join('\n'),
+                    cartography: [
+                      '<premissa>As fontes pertencem a tradições intelectuais distintas. Mapeie como cada uma habita o mesmo problema. Não produza síntese prematura.</premissa>',
+                      '<etapa n="1" nome="tradicoes">Por tradição: suas fontes, vocabulário característico, perguntas que consegue e que não consegue formular, pressupostos ontológicos e epistemológicos de base.</etapa>',
+                      '<etapa n="2" nome="mapa_por_problema">3 a 5 problemas centrais. Compare em tabela o enquadramento, as evidências, a solução e o pressuposto central de cada tradição.</etapa>',
+                      '<etapa n="3" nome="vocabulario_comparado">Tabela de termos que cada tradição usa para os mesmos fenômenos. Marque cognato genuíno e falso cognato.</etapa>',
+                      '<etapa n="4" nome="assimetrias">Que tradição domina o notebook e que viés isso introduz, qual está sub-representada, que aspectos só uma articula.</etapa>',
+                      '<etapa n="5" nome="mapa_resultante">A paisagem disciplinar: quem fala com quem, quem ignora quem, onde estão os muros e as zonas de contato.</etapa>'
+                    ].join('\n'),
+                    convergences: [
+                      '<distincao>',
+                      '  <convergencia>Genuína: caminhos independentes, mesma conclusão. Aparente: mesma palavra, significado diferente.</convergencia>',
+                      '  <divergencia>Irredutível: desacordo de premissas, não de dados, sem solução. Resolúvel: empírica ou terminológica, mediável.</divergencia>',
+                      '</distincao>',
+                      '<etapa n="1" nome="convergencias">Fontes, formulação precisa do acordo, classificação, e então a força epistêmica (se genuína) ou a diferença escondida (se aparente).</etapa>',
+                      '<etapa n="2" nome="divergencias">Fontes e ponto específico, tipo (premissas, métodos, dados, valores), e então o núcleo do desacordo (se irredutível, sem harmonizar) ou o que mediaria (se resolúvel).</etapa>',
+                      '<etapa n="3" nome="tensao_produtiva">Que divergências irresolvidas iluminam algo. O que cada lado vê que o outro não vê?</etapa>',
+                      '<etapa n="4" nome="tabela_sintese"><colunas>Aspecto | Fontes que concordam | Fontes que discordam | Tipo | Resolúvel?</colunas></etapa>',
+                      '<etapa n="5" nome="implicacoes">O que só aparece vendo convergências e divergências juntas: que consensos são sólidos e que divergências revelam o campo partido em premissas.</etapa>'
+                    ].join('\n'),
+                    bridges: [
+                      '<premissa>Tradições distintas usam conceitos similares com significados diferentes, ou palavras diferentes para o mesmo fenômeno. Mapeie os dois casos.</premissa>',
+                      '<etapa n="1" nome="cognatos_genuinos">Mesmo fenômeno, vocabulário diferente. Por par: o termo em cada tradição, o argumento de que é o mesmo fenômeno, o que cada uma vê que a outra não vê.</etapa>',
+                      '<etapa n="2" nome="falsos_cognatos">Mesma palavra, fenômenos diferentes. Por par: o uso em cada tradição, onde o significado diverge, que confusão a homonímia gera, e a desambiguação quando houver.</etapa>',
+                      '<etapa n="3" nome="conceitos_orfaos">Conceitos sem equivalente nas outras tradições, e o que a ausência revela sobre o que cada uma consegue pensar.</etapa>',
+                      '<etapa n="4" nome="mapa_de_pontes"><colunas>Conceito ou fenômeno | Tradição A | Tradição B | Tradição C | Tipo de relação</colunas></etapa>',
+                      '<etapa n="5" nome="implicacoes">Mal-entendidos interdisciplinares que estas fontes revelam, onde o leitor precisaria de tradutor, que pontes facilitariam o diálogo.</etapa>'
+                    ].join('\n'),
+                    synthesis: [
+                      '<premissa>Sintetizar fontes heterogêneas é escolha: resolve tensões sacrificando outras. Mapeie as rotas e seus custos. Não existe síntese neutra.</premissa>',
+                      '<etapa n="0" nome="inventario_de_tensoes">As tensões irredutíveis: ontológicas (o que existe), epistemológicas (como conhecemos), metodológicas (como investigamos), normativas (o que importa).</etapa>',
+                      '<etapa n="1" nome="rotas">2 a 4 caminhos de síntese plausíveis. Por rota: a lógica de integração, o que preserva e o que sacrifica de cada tradição, que perspectiva fica subalterna, que pressupostos exige, e se alguma fonte sugere essa direção.</etapa>',
+                      '<etapa n="2" nome="sintese_das_sinteses">Que rota é mais fiel às fontes como estão, qual exige mais reinterpretação, se existe rota coerente que nenhuma fonte sugere, e que tensão nenhuma rota resolve e deve permanecer produtiva.</etapa>',
+                      '<etapa n="3" nome="recomendacao">Que rota serve melhor ao objetivo do usuário, e por quê. Marque como INTERPRETAÇÃO, não como leitura direta das fontes.</etapa>'
+                    ].join('\n'),
+                    tension: [
+                      '<objetivo>Não resolva o conflito entre tradições. Use o conflito para revelar o que cada uma deixa invisível.</objetivo>',
+                      '<etapa n="1" nome="pares_produtivos">2 a 3 pares de fontes de tradições diferentes cujo confronto geraria máxima fricção epistêmica. Justifique cada par.</etapa>',
+                      '<etapa n="2" nome="protocolo_de_confronto">Por par A × B: o que A diria sobre B (pressuposto inaceitável, pergunta que B não responde, evidência que B teria dificuldade de absorver), o que B diria sobre A na mesma estrutura, e o que o confronto ilumina.</etapa>',
+                      '<etapa n="3" nome="friccoes_de_alto_rendimento">Os conflitos em que a divergência não é erro, mas estrutura profunda. O que cada um ensina sobre os limites de cada tradição?</etapa>',
+                      '<etapa n="4" nome="questoes_emergentes">5 a 8 questões que só emergem do tensionamento, que nenhuma fonte formularia sozinha.</etapa>',
+                      '<etapa n="5" nome="reflexao_metodologica">O que o exercício sugere sobre pesquisar com estas fontes, e que postura epistêmica exige.</etapa>'
+                    ].join('\n'),
+                },
+            },
+        };
+
+        // ── Render templates ──────────────────────────────────────────────────────────
+        function renderTemplates() {
+            const t = i18n[lang];
+            const base = document.getElementById('tpl-base');
+            const inter = document.getElementById('tpl-inter');
+            const tag = (id) => DEBATE_TEMPLATES.has(id) ? '<span class="format-tag">🎭 Debate</span>' : '';
+            base.innerHTML = t.templates.map(tp =>
+                `<div class="template-btn${activeTemplate === tp.id ? ' active' : ''}" onclick="sel('${tp.id}',event)"><span>${tp.icon}</span> ${tp.label}${tag(tp.id)}</div>`
+            ).join('');
+            inter.innerHTML = t.interTemplates.map(tp =>
+                `<div class="template-btn inter${activeTemplate === tp.id ? ' active' : ''}" onclick="sel('${tp.id}',event)"><span>${tp.icon}</span> ${tp.label}${tag(tp.id)}</div>`
+            ).join('');
+        }
+
+        // ── Apply UI strings ──────────────────────────────────────────────────────────
+        function applyStrings() {
+            const t = i18n[lang];
+            document.getElementById('h-title').textContent = t.title;
+            document.getElementById('h-sub').textContent = t.sub;
+            document.getElementById('lbl-type').textContent = t.lblType;
+            document.getElementById('reportType').placeholder = t.typePlaceholder;
+            document.getElementById('sec-source').childNodes[0].textContent = t.secSource;
+            document.getElementById('sec-inter').childNodes[0].textContent = t.secInter;
+            document.getElementById('lbl-focus').childNodes[0].textContent = t.lblFocus + ' ';
+            document.getElementById('recommendedLabel').textContent = t.recommended;
+            document.getElementById('focusHintTitle').textContent = t.hintTitle;
+            document.getElementById('customFocus').placeholder = t.focusPlaceholder;
+            document.getElementById('lbl-guardrail').textContent = t.lblGuardrail;
+            document.getElementById('desc-guardrail').textContent = guardrailOn ? t.descGuardrailOn : t.descGuardrail;
+            document.getElementById('lbl-podcast').textContent = t.lblPodcast;
+            document.getElementById('desc-podcast').textContent = podcastOn ? t.descPodcastOn : t.descPodcast;
+            document.getElementById('btn-generate').textContent = t.btnGenerate;
+            document.getElementById('lbl-output').textContent = t.lblOutput;
+            document.getElementById('copyText').textContent = t.copy;
+            document.getElementById('guardrailWarningText').textContent = t.guardrailWarningText;
+            renderTemplates();
+            // Re-apply typeValue for active template
+            if (activeTemplate) {
+                const tv = t.typeValues[activeTemplate];
+                if (tv) document.getElementById('reportType').value = tv;
+                // Re-apply focus hint
+                const hint = t.focusHints[activeTemplate];
+                const hintBox = document.getElementById('focusHintBox');
+                const hintText = document.getElementById('focusHintText');
+                if (hint) { hintText.innerHTML = hint; hintBox.style.display = 'block'; document.getElementById('recommendedLabel').style.display = 'inline'; }
+                else { hintBox.style.display = 'none'; document.getElementById('recommendedLabel').style.display = 'none'; }
+            }
+            updateBudget();
+        }
+
+        function setLang(l) {
+            lang = l;
+            document.getElementById('btnEN').classList.toggle('active', l === 'en');
+            document.getElementById('btnPT').classList.toggle('active', l === 'pt');
+            document.documentElement.lang = l === 'pt' ? 'pt-BR' : 'en';
+            applyStrings();
+        }
+
+        // ── Template select ───────────────────────────────────────────────────────────
+        function sel(id, e) {
+            activeTemplate = id;
+            const t = i18n[lang];
+            document.getElementById('reportType').value = t.typeValues[id] || '';
+            const cf = document.getElementById('customFocus');
+            cf.placeholder = t.focusPlaceholders[id] || t.focusPlaceholder;
+            const rl = document.getElementById('recommendedLabel');
+            const hintBox = document.getElementById('focusHintBox');
+            const hintText = document.getElementById('focusHintText');
+            if (t.focusHints[id]) {
+                cf.classList.add('focus-recommended');
+                rl.style.display = 'inline';
+                hintText.innerHTML = t.focusHints[id];
+                hintBox.style.display = 'block';
+            } else {
+                cf.classList.remove('focus-recommended');
+                rl.style.display = 'none';
+                hintBox.style.display = 'none';
+            }
+            renderTemplates();
+
+            // Auto-enable guardrail for multi-source templates
+            if (INTER_TEMPLATES.has(id) && !guardrailOn) {
+                guardrailOn = true;
+                document.getElementById('toggleSwitch').classList.add('on');
+                document.getElementById('guardrailToggle').classList.add('on');
+                const t2 = i18n[lang];
+                document.getElementById('desc-guardrail').textContent = t2.descGuardrailOn;
+                // Hide any warning that may be showing
+                const w = document.getElementById('guardrailWarning');
+                if (w) w.style.display = 'none';
+            }
+            // Hide warning if switching to a base template
+            if (!INTER_TEMPLATES.has(id)) {
+                const w = document.getElementById('guardrailWarning');
+                if (w) w.style.display = 'none';
+            }
+            updateBudget();
+        }
+
+        // ── Toggles ───────────────────────────────────────────────────────────────────
+        function toggleGuardrail() {
+            // Show warning when turning off guardrail while a feature that depends on it is active
+            if (guardrailOn && INTER_TEMPLATES.has(activeTemplate)) {
+                const w = document.getElementById('guardrailWarning');
+                if (w) {
+                    w.style.display = 'flex';
+                    // Auto-hide after 8s
+                    clearTimeout(w._hideTimer);
+                    w._hideTimer = setTimeout(() => { w.style.display = 'none'; }, 8000);
+                }
+            } else {
+                const w = document.getElementById('guardrailWarning');
+                if (w) w.style.display = 'none';
+            }
+            guardrailOn = !guardrailOn;
+            document.getElementById('toggleSwitch').classList.toggle('on', guardrailOn);
+            document.getElementById('guardrailToggle').classList.toggle('on', guardrailOn);
+            const t = i18n[lang];
+            document.getElementById('desc-guardrail').textContent = guardrailOn ? t.descGuardrailOn : t.descGuardrail;
+            updateBudget();
+        }
+        function togglePodcast() {
+            podcastOn = !podcastOn;
+            document.getElementById('podcastSwitch').classList.toggle('on', podcastOn);
+            document.getElementById('podcastToggle').classList.toggle('on', podcastOn);
+            const t = i18n[lang];
+            document.getElementById('desc-podcast').textContent = podcastOn ? t.descPodcastOn : t.descPodcast;
+            updateBudget();
+        }
+
+        // ── Build prompt (compartilhado entre geração final e orçamento ao vivo) ───────
+        // ── Envolve conteúdo num elemento XML, com indentação de dois espaços ─────────
+        function tagXml(nome, conteudo, attrs) {
+            if (!conteudo) return '';
+            const a = attrs ? ' ' + Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ') : '';
+            const corpo = String(conteudo).split('\n').map(l => l ? '  ' + l : l).join('\n');
+            return `<${nome}${a}>\n${corpo}\n</${nome}>`;
+        }
+
+        // Escapa texto do formulário: & ou < quebrariam o XML entregue ao modelo.
+        function esc(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        /* Mapa fixo de destino. Só o Roteiro Podcast alimenta o Audio Overview, que
+           fica no painel Studio e não herda o system prompt. O Modo Podcast e o
+           alternador de guardrails funcionam como sobrescrita manual do mapa. */
+        const DESTINO_TEMPLATE = { podcast: 'studio' };
+        function destinoDe() {
+            return (podcastOn || DESTINO_TEMPLATE[activeTemplate] === 'studio') ? 'studio' : 'chat';
+        }
+
+        // ── Build prompt (compartilhado entre geração final e orçamento ao vivo) ───────
+        function buildPrompt() {
+            const t = i18n[lang];
+            const reportType = document.getElementById('reportType').value.trim();
+            const customFocus = document.getElementById('customFocus').value.trim();
+            const partes = [t.basePrompt.replace('{TYPE}', esc(reportType))];
+            if (activeTemplate && t.specificInstructions[activeTemplate]) {
+                partes.push(tagXml('orientacoes', t.specificInstructions[activeTemplate], { nome: activeTemplate }));
+            }
+            if (customFocus) partes.push(tagXml('foco', esc(customFocus)));
+            if (podcastOn) partes.push(tagXml('podcast', t.podcastMode));
+            partes.push(tagXml('calibragem', lang === 'pt'
+                ? 'Adapte profundidade analítica, ênfase conceitual e modalidade de apresentação ao tipo de relatório pedido.'
+                : 'Adapt analytical depth, conceptual emphasis and presentation modality to the requested report type.'));
+            const corpo = tagXml('laboratorio_academico', partes.filter(Boolean).join('\n\n'));
+            // Guardrails só no destino Studio: o chat já os herda do system prompt.
+            // A chave governa o bloco epistêmico; o <estilo> vai sempre.
+            // Atribuição falada sempre que a saída for áudio: o Modo Podcast, ou o
+            // próprio template de Roteiro Podcast, que já nasce com destino Studio.
+            const audio = podcastOn || activeTemplate === 'podcast';
+            return comGuardrails(corpo, destinoDe(), { epistemico: guardrailOn, falada: audio });
+        }
+
+        // ── Orçamento regressivo do Foco Específico ─────────────────────────────────────
+        function updateBudget() {
+            const el = document.getElementById('focusBudget');
+            if (!el) return;
+            el.innerHTML = medidorHtml(buildPrompt().length, destinoDe());
+        }
+
+        // ── Generate ──────────────────────────────────────────────────────────────────
+        function generatePrompt() {
+            const reportType = document.getElementById('reportType').value.trim();
+            if (!reportType) { alert(i18n[lang].alertType); return; }
+            const prompt = buildPrompt();
+            document.getElementById('promptOutput').textContent = prompt;
+            const len = prompt.length;
+            const cc = document.getElementById('charCount');
+            cc.innerHTML = medidorHtml(len, destinoDe());
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            updateBudget();
+        }
+
+        // ── Copy ──────────────────────────────────────────────────────────────────────
+        function copyToClipboard() {
+            const t = i18n[lang];
+            navigator.clipboard.writeText(document.getElementById('promptOutput').textContent).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.classList.add('copied');
+                document.getElementById('copyIcon').textContent = '✓';
+                document.getElementById('copyText').textContent = t.copied;
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    document.getElementById('copyIcon').textContent = '📋';
+                    document.getElementById('copyText').textContent = t.copy;
+                }, 2000);
+            }).catch(() => alert('Copy failed — please select and copy manually.'));
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        // Modo Rigoroso começa ativado por padrão — sincroniza o visual do toggle
+        document.getElementById('toggleSwitch').classList.add('on');
+        document.getElementById('guardrailToggle').classList.add('on');
+        setLang('pt');
+    </script>
+<script>
+(function(){
+  const K='nblm.lab';
+  const _sel=sel,_tg=toggleGuardrail,_tp=togglePodcast;
+  
+  const _nlmLangL = setLang;
+  window.setLang = function(l) {
+    _nlmLangL(l);
+    document.getElementById('nlm-btn-pt')?.classList.toggle('nlm-lang-on', l==='pt');
+    document.getElementById('nlm-btn-en')?.classList.toggle('nlm-lang-on', l==='en');
+    localStorage.setItem('nblm.lab.lang', l);
+  };
+  window.sel=function(id,e){_sel(id,e);localStorage.setItem(K+'.tpl',id);};
+  window.toggleGuardrail=function(){_tg();localStorage.setItem(K+'.guardrail',guardrailOn);};
+  window.togglePodcast=function(){_tp();localStorage.setItem(K+'.podcast',podcastOn);};
+  document.getElementById('reportType').addEventListener('input',e=>localStorage.setItem(K+'.rtype',e.target.value));
+  document.getElementById('customFocus').addEventListener('input',e=>localStorage.setItem(K+'.focus',e.target.value));
+  const sl=localStorage.getItem(K+'.lang'),stpl=localStorage.getItem(K+'.tpl'),
+        sr=localStorage.getItem(K+'.rtype'),sf=localStorage.getItem(K+'.focus'),
+        sg=localStorage.getItem(K+'.guardrail'),sp=localStorage.getItem(K+'.podcast');
+  if(sl&&sl!=='pt')setLang(sl);
+  if(stpl)sel(stpl,{stopPropagation:()=>{}});
+  if(sr)document.getElementById('reportType').value=sr;
+  if(sf)document.getElementById('customFocus').value=sf;
+  if(sg==='false'&&guardrailOn)toggleGuardrail();
+  if(sp==='true'&&!podcastOn)togglePodcast();
+})();
+</script>
+<script id="oficina-limpar">
+/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab e
+   studio. Apaga só o texto digitado nesta página (e sua cópia guardada no
+   navegador); seleções de modo, template e chaves ficam como estão.
+   Primeiro clique arma, segundo confirma; desarma sozinho em 3 s. */
+window.limparCampos=function(btn){
+  const ROTULO='Limpar campos';
+  if(!btn.dataset.armado){
+    btn.dataset.armado='1';btn.textContent='Confirmar limpeza';btn.classList.add('armado');
+    btn._t=setTimeout(()=>{delete btn.dataset.armado;btn.textContent=ROTULO;btn.classList.remove('armado');},3000);
+    return;
+  }
+  clearTimeout(btn._t);delete btn.dataset.armado;btn.classList.remove('armado');
+  document.querySelectorAll('textarea, input[type="text"]').forEach(el=>{
+    el.value='';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  btn.textContent='Campos limpos';
+  setTimeout(()=>{btn.textContent=ROTULO;},1500);
+};
+</script>
+</body>
+
+</html>

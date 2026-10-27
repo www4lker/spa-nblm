@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dossiê de Confronto</title>
+    <style>
+        :root {
+            --bg: #0c0c0d;
+            --panel: #151517;
+            --panel-2: #1b1b1e;
+            --border: #2a2a2e;
+            --text: #e4e4e3;
+            --text-dim: #9a9a98;
+            --text-faint: #6b6b69;
+            --mono: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+            --sans: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+            --alvo: #c2410c;
+            --alvo-bg: rgba(194, 65, 12, .12);
+            --alvo-border: rgba(194, 65, 12, .45);
+
+            --contraponto: #b45309;
+            --contraponto-bg: rgba(180, 83, 9, .12);
+            --contraponto-border: rgba(180, 83, 9, .4);
+
+            --evidencia: #0e7490;
+            --evidencia-bg: rgba(14, 116, 144, .14);
+            --evidencia-border: rgba(14, 116, 144, .4);
+
+            --contexto: #57534e;
+            --contexto-bg: rgba(87, 83, 78, .18);
+            --contexto-border: rgba(120, 113, 108, .4);
+
+            --stamp: #8a8a86;
+            --warning: #dc2626;
+            --success: #15803d;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f4f3ef;
+                --panel: #ffffff;
+                --panel-2: #ebeae5;
+                --border: #d4d2cb;
+                --text: #1b1a17;
+                --text-dim: #5a584f;
+                --text-faint: #8a877c;
+                --stamp: #57534e;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            margin: 0;
+            padding: 2rem 1.25rem 4rem;
+            line-height: 1.5;
+        }
+
+        .wrap { max-width: 760px; margin: 0 auto; }
+
+        header { margin-bottom: 1.75rem; }
+
+        .case-no {
+            font-family: var(--mono);
+            font-size: .7rem;
+            letter-spacing: .08em;
+            color: var(--text-faint);
+            text-transform: uppercase;
+            margin-bottom: .35rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 .3rem;
+            letter-spacing: -.01em;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: .88rem;
+            max-width: 56ch;
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            gap: .25rem;
+            font-family: var(--mono);
+            font-size: .7rem;
+        }
+
+        .lang-btn {
+            padding: .3rem .55rem;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .lang-btn.active {
+            border-color: var(--text-dim);
+            color: var(--text);
+            background: var(--panel-2);
+        }
+
+        section {
+            margin-bottom: 1.75rem;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: .68rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: .6rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Category tabs — file-folder metaphor */
+        .tabs {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            font-family: var(--mono);
+            font-size: .78rem;
+            padding: .65rem .9rem .55rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            top: 1px;
+        }
+
+        .tab.active {
+            background: var(--panel-2);
+            color: var(--text);
+            border-color: var(--text-faint);
+            box-shadow: 0 -2px 0 var(--alvo) inset;
+        }
+
+        .tab-body {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 0 4px 4px 4px;
+            padding: 1rem 1.1rem;
+            font-size: .84rem;
+            color: var(--text-dim);
+        }
+
+        .tab-body strong { color: var(--text); }
+
+        /* Sub-toggles inside a category (rigidez, veredito) */
+        .sub-options {
+            margin-top: .75rem;
+            display: flex;
+            gap: .4rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            font-family: var(--mono);
+            font-size: .68rem;
+            padding: .3rem .65rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--text-dim);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pill.active {
+            background: var(--alvo-bg);
+            border-color: var(--alvo-border);
+            color: var(--alvo);
+        }
+
+        .verdict-warning {
+            margin-top: .6rem;
+            font-size: .72rem;
+            color: var(--warning);
+            display: none;
+        }
+
+        .verdict-warning.show { display: block; }
+
+        /* Exhibit grid — the four role slots */
+        .exhibits {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .7rem;
+        }
+
+        @media (max-width: 540px) {
+            .exhibits { grid-template-columns: 1fr; }
+            .relation-grid { grid-template-columns: 1fr; }
+            .relation-help { padding-top: 0; }
+        }
+
+        .exhibit {
+            border: 1px dashed var(--border);
+            border-radius: 5px;
+            padding: .7rem .8rem;
+            background: var(--panel);
+        }
+
+        .exhibit-tag {
+            font-family: var(--mono);
+            font-size: .65rem;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            margin-bottom: .45rem;
+            padding: .12rem .4rem;
+            border-radius: 3px;
+        }
+
+        .exhibit-tag .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .exhibit.alvo .exhibit-tag { background: var(--alvo-bg); color: var(--alvo); border: 1px solid var(--alvo-border); }
+        .exhibit.alvo .dot { background: var(--alvo); }
+        .exhibit.contraponto .exhibit-tag { background: var(--contraponto-bg); color: var(--contraponto); border: 1px solid var(--contraponto-border); }
+        .exhibit.contraponto .dot { background: var(--contraponto); }
+        .exhibit.evidencia .exhibit-tag { background: var(--evidencia-bg); color: var(--evidencia); border: 1px solid var(--evidencia-border); }
+        .exhibit.evidencia .dot { background: var(--evidencia); }
+        .exhibit.contexto .exhibit-tag { background: var(--contexto-bg); color: var(--text-dim); border: 1px solid var(--contexto-border); }
+        .exhibit.contexto .dot { background: var(--text-faint); }
+
+        .exhibit input,
+        .exhibit textarea {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: .5rem .6rem;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: .82rem;
+        }
+
+        .exhibit textarea { min-height: 5.5rem; resize: vertical; line-height: 1.45; }
+        .exhibit input:focus, .exhibit textarea:focus { outline: none; border-color: var(--text-faint); }
+        .exhibit .req { color: var(--alvo); }
+        .opt-hint { font-size: .68rem; color: var(--text-faint); margin-top: .45rem; line-height: 1.5; }
+
+        .selection-notice {
+            margin-top: .8rem;
+            padding: .7rem .8rem;
+            border-left: 3px solid var(--evidencia);
+            background: var(--evidencia-bg);
+            color: var(--text-dim);
+            font-size: .75rem;
+            line-height: 1.55;
+        }
+
+        .selection-notice strong { color: var(--text); }
+
+        .relation-grid {
+            display: grid;
+            grid-template-columns: minmax(180px, .45fr) 1fr;
+            gap: .8rem;
+            align-items: start;
+        }
+
+        .relation-grid select { width: 100%; padding: .55rem .65rem; }
+        .relation-help { color: var(--text-dim); font-size: .78rem; line-height: 1.55; padding-top: .55rem; }
+
+        textarea#foco,
+        textarea#restricoes {
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: .7rem .8rem;
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: .85rem;
+            resize: vertical;
+            min-height: 4.5rem;
+        }
+
+        textarea#foco:focus, textarea#restricoes:focus { outline: none; border-color: var(--text-faint); }
+
+        .field-error {
+            min-height: 1rem;
+            margin-top: .35rem;
+            color: var(--warning);
+            font-size: .7rem;
+            font-weight: 600;
+        }
+
+        .invalid-field { border-color: var(--warning) !important; box-shadow: 0 0 0 3px rgba(220,38,38,.12) !important; }
+
+        .form-error {
+            display: none;
+            margin: 0 0 .75rem;
+            padding: .65rem .75rem;
+            border: 1px solid rgba(220,38,38,.35);
+            border-radius: 5px;
+            background: rgba(220,38,38,.07);
+            color: var(--warning);
+            font-size: .76rem;
+            font-weight: 600;
+        }
+
+        .form-error.show { display: block; }
+
+        .budget-line {
+            font-family: var(--mono);
+            font-size: .7rem;
+            color: var(--text-faint);
+            margin-top: .4rem;
+        }
+
+        .budget-line.warn { color: var(--warning); }
+
+        /* Toggles */
+        .toggle-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: .85rem 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .toggle-row:last-child { border-bottom: none; }
+
+        .toggle-info { flex: 1; }
+        .toggle-label { font-size: .88rem; font-weight: 600; margin-bottom: .15rem; }
+        .toggle-desc { font-size: .76rem; color: var(--text-dim); }
+
+        .stamp-switch {
+            width: 38px;
+            height: 22px;
+            border-radius: 11px;
+            border: 1.5px solid var(--border);
+            background: var(--panel);
+            position: relative;
+            flex-shrink: 0;
+            margin-top: .15rem;
+            transition: border-color .15s;
+        }
+
+        .stamp-switch .knob {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--text-faint);
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: left .15s, background .15s;
+        }
+
+        .stamp-switch.on {
+            border-color: var(--success);
+        }
+
+        .stamp-switch.on .knob {
+            left: 18px;
+            background: var(--success);
+        }
+
+        .rigor-stamp {
+            display: none;
+            font-family: var(--mono);
+            font-size: .62rem;
+            letter-spacing: .12em;
+            color: var(--success);
+            border: 1.5px solid var(--success);
+            border-radius: 3px;
+            padding: .1rem .4rem;
+            transform: rotate(-4deg);
+            text-transform: uppercase;
+        }
+
+        .rigor-stamp.show { display: inline-block; }
+
+        button.generate {
+            width: 100%;
+            background: var(--text);
+            color: var(--bg);
+            border: none;
+            border-radius: 5px;
+            padding: .85rem;
+            font-size: .9rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+
+        button.generate:hover { opacity: .88; }
+
+        #output-section { display: none; margin-top: 1.5rem; }
+
+        pre#prompt-output {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 1rem;
+            font-family: var(--mono);
+            font-size: .76rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 420px;
+            overflow-y: auto;
+            margin: 0 0 .6rem;
+        }
+
+        .output-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .char-count { font-family: var(--mono); font-size: .72rem; color: var(--text-faint); }
+        .char-count .warning { color: var(--warning); font-weight: 600; }
+
+        button.copy {
+            font-family: var(--mono);
+            font-size: .75rem;
+            padding: .45rem .8rem;
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        button.copy.copied { border-color: var(--success); color: var(--success); }
+
+        footer {
+            margin-top: 2.5rem;
+            font-size: .72rem;
+            color: var(--text-faint);
+            font-family: var(--mono);
+        }
+    
+.nlm-nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;padding:0 16px;height:40px;background:#080812;border-bottom:1px solid #1a1a30;font:500 11px/1 ui-monospace,monospace;gap:0;flex-shrink:0}
+.nlm-nav a{color:#44445e;text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .12s,background .12s}
+.nlm-nav a:hover{color:#9090c0;background:#14142a}
+.nlm-nav .nlm-active{color:#a78bfa!important;background:#1a143a!important}
+.nlm-nav .nlm-home{color:#33334a;padding:5px 12px 5px 2px;margin-right:10px;border-right:1px solid #1a1a30;letter-spacing:.05em}
+.nlm-nav .nlm-home:hover{color:#6060a0;background:none!important}
+.nlm-nav .nlm-lang{margin-left:auto;display:flex;gap:2px;padding-left:10px;border-left:1px solid #1a1a30}
+.nlm-lang-btn{background:none;border:1px solid transparent;color:#44445e;font:500 10px/1 ui-monospace,monospace;padding:4px 7px;border-radius:3px;cursor:pointer;letter-spacing:.06em;transition:color .12s}
+.nlm-lang-btn:hover{color:#9090c0}
+.nlm-lang-btn.nlm-lang-on{color:#c8b060!important;border-color:#2a2418!important}
+
+/* Seletor PT/EN escondido: as tags XML e o system prompt canônico são
+   em português, e a Suite não tem versão EN — um usuário em inglês
+   receberia prompts EN sem system prompt correspondente. As strings
+   i18n.en seguem no código, intactas; só o acesso está fechado. */
+.nlm-nav .nlm-lang{display:none!important}
+
+.medidor{display:inline-flex;align-items:center;gap:9px;vertical-align:middle}
+.medidor .destino{font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.medidor .barra{position:relative;width:110px;height:3px;border-radius:2px;background:rgba(128,128,128,.28);overflow:hidden}
+.medidor .barra i{position:absolute;top:0;bottom:0;left:0;background:currentColor}
+.medidor .numero{font-variant-numeric:tabular-nums;white-space:nowrap}
+.medidor.excesso{color:#b91c1c;font-weight:600}
+</style>
+    <style>:root {
+  --suite-ink: #17243a;
+  --suite-ink-2: #314158;
+  --suite-muted: #657186;
+  --suite-paper: #f6f3ec;
+  --suite-sheet: #fffdf8;
+  --suite-line: #d8d2c5;
+  --suite-accent: #245b78;
+  --suite-accent-soft: #e4eef1;
+  --suite-success: #31715b;
+  --suite-danger: #a7443d;
+  --suite-radius: 8px;
+  --suite-shadow: 0 10px 30px rgba(25, 36, 48, .07);
+}
+
+html { color-scheme: light; scroll-behavior: smooth; }
+body {
+  background: var(--suite-paper) !important;
+  color: var(--suite-ink) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  padding: 0 1rem 3rem !important;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(23,36,58,.025) 1px, transparent 1px);
+  background-size: 100% 32px;
+}
+
+.suite-shell { max-width: 1180px; margin: 0 auto 2.5rem; }
+.suite-nav {
+  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  border-bottom: 1px solid var(--suite-line); color: var(--suite-ink);
+}
+.suite-brand { display: flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; }
+.suite-brand-mark {
+  width: 32px; height: 36px; display: grid; place-items: center; border: 1px solid var(--suite-ink);
+  border-radius: 2px 7px 7px 2px; font-family: Georgia, serif; font-weight: 700; font-size: .82rem;
+  box-shadow: inset 4px 0 0 var(--suite-accent-soft);
+}
+.suite-brand strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+.suite-brand small { display: block; margin-top: 2px; color: var(--suite-muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.suite-links { display: flex; align-items: center; gap: .25rem; }
+.suite-links a, .suite-menu summary {
+  color: var(--suite-ink-2); text-decoration: none; padding: .55rem .7rem; border-radius: 5px;
+  font-size: .78rem; font-weight: 650; cursor: pointer; list-style: none;
+}
+.suite-links a:hover, .suite-links a:focus-visible, .suite-menu summary:hover { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu { position: relative; }
+.suite-menu summary::-webkit-details-marker { display: none; }
+.suite-menu[open] summary { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu-panel {
+  position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; min-width: 240px; padding: .45rem;
+  background: var(--suite-sheet); border: 1px solid var(--suite-line); border-radius: var(--suite-radius); box-shadow: var(--suite-shadow);
+}
+.suite-menu-panel a { display: block; }
+.suite-context { display: flex; align-items: center; gap: .65rem; margin-top: 1rem; color: var(--suite-muted); font-size: .75rem; }
+.suite-context span { color: var(--suite-accent); font-weight: 750; text-transform: uppercase; letter-spacing: .07em; }
+
+/* Shared form grammar; original selectors, IDs and behavior remain untouched. */
+.container, .wrap, .suite { width: min(100%, 980px) !important; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
+.header, .wrap > header, .page-header { text-align: left !important; margin-bottom: 1.75rem !important; padding: 0 !important; border: 0 !important; }
+.header h1, .wrap > header h1, .page-header h1 {
+  color: var(--suite-ink) !important; font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.65rem) !important; font-weight: 600 !important; letter-spacing: -.035em !important;
+}
+.header p, .subtitle, .page-header p { color: var(--suite-muted) !important; max-width: 720px; line-height: 1.6 !important; }
+.card, .wrap > section, #output-section {
+  background: var(--suite-sheet) !important; color: var(--suite-ink) !important; border: 1px solid var(--suite-line) !important;
+  border-radius: var(--suite-radius) !important; box-shadow: var(--suite-shadow) !important;
+}
+.card { margin-bottom: 1rem; }
+.wrap > section, #output-section { padding: 1.5rem !important; margin-bottom: 1rem !important; }
+label, .section-label, .exhibit-tag { color: var(--suite-ink-2) !important; letter-spacing: .045em; }
+input, textarea, select {
+  background: #fff !important; color: var(--suite-ink) !important; border: 1px solid #bfc5ca !important;
+  border-radius: 6px !important; min-height: 44px; font: inherit !important;
+}
+input:hover, textarea:hover, select:hover { border-color: #82909a !important; }
+input:focus, textarea:focus, select:focus { border-color: var(--suite-accent) !important; box-shadow: 0 0 0 3px rgba(36,91,120,.16) !important; outline: none !important; }
+button, [role="button"], .tab, .pill, .template-btn { min-height: 40px; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid rgba(36,91,120,.28) !important; outline-offset: 2px; }
+.generate-btn, button.generate, .btn-copy {
+  background: var(--suite-accent) !important; color: white !important; border-color: var(--suite-accent) !important;
+  border-radius: 6px !important; box-shadow: none !important;
+}
+.generate-btn:hover, button.generate:hover, .btn-copy:hover { background: #194862 !important; transform: translateY(-1px); }
+.generate-btn:disabled { background: #929ba3 !important; border-color: #929ba3 !important; cursor: not-allowed; }
+.copy-btn, button.copy, .btn-expand, .lang-btn { border-radius: 5px !important; }
+.output-box, #prompt-output, .ptext {
+  background: #f4f1e9 !important; color: #26364a !important; border-color: var(--suite-line) !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important; line-height: 1.7 !important;
+}
+.mode-card, .template-btn, .tab, .toggle-row, .guardrail-detail { border-radius: 6px !important; box-shadow: none !important; }
+.mode-card:hover, .template-btn:hover, .tab:hover { transform: none !important; border-color: var(--suite-accent) !important; }
+.mode-card.active, .template-btn.active, .tab.active { border-color: var(--suite-accent) !important; background: var(--suite-accent-soft) !important; color: var(--suite-ink) !important; }
+.guardrail-badge { border-radius: 4px !important; }
+.lang-switcher, .lang-switch { float: right; }
+.case-no, .eyebrow { color: var(--suite-accent) !important; }
+.suite .card { border-left: 4px solid var(--accent) !important; overflow: hidden; }
+.suite .card-header { padding: 1.25rem 1.35rem; }
+.suite .ptext { border: 0 !important; }
+.suite .fade-out { background: linear-gradient(to bottom, rgba(255,253,248,0), var(--suite-sheet)) !important; }
+
+@media (max-width: 700px) {
+  body { padding-inline: .75rem !important; }
+  .suite-nav { min-height: 58px; }
+  .suite-brand small, .suite-links > a:not(:first-child) { display: none; }
+  .suite-menu-panel { position: fixed; top: 62px; left: .75rem; right: .75rem; }
+  .suite-context { align-items: flex-start; }
+  .card, .wrap > section, #output-section { padding: 1rem !important; }
+  .suite .card { padding: 0 !important; }
+  .card-header { align-items: flex-start !important; flex-wrap: wrap; }
+  .card-header .btn-copy { width: 100%; justify-content: center; }
+  .exhibits { grid-template-columns: 1fr !important; }
+  .output-meta, .output-bar { gap: .75rem; flex-wrap: wrap; }
+  button, .generate-btn, button.generate { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+</style>
+    <script>document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[onclick]:not(button):not(a)').forEach((el) => {
+    if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
+  });
+  document.querySelectorAll('.suite-menu-panel a').forEach((link) => {
+    if (link.href === location.href) link.setAttribute('aria-current', 'page');
+  });
+});
+</script>
+<style id="oficina-unificado">
+/* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
+   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+.nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
+.nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
+.nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
+.nlm-nav .nlm-active{color:var(--suite-accent,#245b78)!important;border-bottom-color:var(--suite-accent,#245b78)!important;background:none!important;font-weight:600}
+.nlm-nav .nlm-home{font:600 15px/1 Georgia,'Times New Roman',serif!important;color:var(--suite-ink,#17243a)!important;border-right:1px solid var(--suite-line,#d8d2c5)!important;padding:6px 14px 6px 2px!important;margin-right:8px!important;letter-spacing:0!important}
+.nlm-nav .nlm-clear{margin-left:auto;background:none;border:1px solid transparent;border-radius:5px;padding:5px 10px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-muted,#657186);cursor:pointer;min-height:0}
+.nlm-nav .nlm-clear:hover{color:var(--suite-ink,#17243a);border-color:var(--suite-line,#d8d2c5)}
+.nlm-nav .nlm-clear.armado{color:var(--suite-danger,#a7443d);border-color:var(--suite-danger,#a7443d)}
+/* Laboratório */
+.template-btn,.template-btn.inter{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important;color:var(--suite-ink)!important}
+.template-btn.active,.template-btn.inter.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.section-label.interdisciplinar{color:var(--suite-ink-2)!important}
+.section-label::after,.section-label.interdisciplinar::after{background:var(--suite-line)!important}
+.template-btn .format-tag{background:transparent!important;color:var(--suite-accent)!important;border-color:var(--suite-line)!important}
+.container{margin-top:1.5rem!important}
+.toggle-row{background:var(--suite-sheet)!important}
+.char-count{background:transparent!important;padding-left:0!important;color:var(--suite-muted)!important}
+.medidor:not(.excesso) .barra i{background:var(--suite-accent)!important}
+.toggle-row.on{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.toggle-switch.on{background:var(--suite-accent)!important}
+.generate-btn{box-shadow:none!important}
+/* Studio */
+.mode-card{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important}
+.mode-card.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+/* Dossiê: rótulos e botões em sans; só o prompt gerado fica monoespaçado */
+.wrap{--mono:Inter,ui-sans-serif,system-ui,sans-serif}
+/* Suite: um só acento, sem faixa colorida por cartão */
+.card.sp,.card.na,.card.rf{--accent:var(--suite-accent)!important;--tint:var(--suite-accent-soft)!important;border-left:1px solid var(--suite-line)!important}
+.card .icon{--tint:var(--suite-accent-soft)!important}
+.suite{margin-top:1.5rem!important}
+.chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
+.hint{color:var(--suite-ink-2)!important}
+</style>
+</head>
+
+<body>
+<nav class="nlm-nav"><a class="nlm-home" href="index.html">Oficina ↗</a><a href="suite.html">Suite</a><a href="dossie.html" class="nlm-active">Dossiê</a><a href="lab.html">Lab</a><a href="studio.html">Studio</a><div class="nlm-lang"><button class="nlm-lang-btn nlm-lang-on" id="nlm-btn-pt" onclick="setLang('pt')">PT</button><button class="nlm-lang-btn" id="nlm-btn-en" onclick="setLang('en')">EN</button></div><button class="nlm-clear" type="button" onclick="limparCampos(this)" title="Apaga o texto digitado nesta página">Limpar campos</button></nav>
+<style>
+body{padding-top:0!important}
+.wrap{padding-top:1.5rem}
+.lang-switch{display:none!important}
+section{margin-bottom:2rem!important}
+#case-no{display:none!important}
+
+/* ── Redesigned mode selector ────────────────────────────────────── */
+/* Horizontal scroll row — no wrapping mess on small screens */
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+/* Each tab is an independent pill — no connected-border trick */
+.tab {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: .73rem;
+  padding: .5rem .9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 6px;
+  position: static;           /* undo top:1px shift */
+  white-space: nowrap;
+  transition: border-color .12s, color .12s, background .12s;
+  user-select: none;
+}
+.tab:hover {
+  border-color: var(--text-faint);
+  color: var(--text);
+}
+.tab.active {
+  background: var(--panel-2);
+  color: var(--text);
+  border-color: var(--alvo);
+  box-shadow: none;
+}
+
+/* Tab body: clearly separated card — not connected to tabs above */
+.tab-body {
+  margin-top: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .9rem 1rem;
+  font-size: .83rem;
+  color: var(--text-dim);
+  max-height: 160px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Sub-options (rigidity pills) — responsive wrap */
+.sub-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: .7rem;
+}
+
+@media (max-width: 480px) {
+  .tab { font-size: .68rem; padding: .45rem .75rem; }
+  .tab-body { font-size: .79rem; padding: .75rem .85rem; }
+}
+</style>
+
+    
+    <div class="wrap">
+        <div class="lang-switch">
+            <div class="lang-btn" id="lang-en" onclick="setLang('en')">EN</div>
+            <div class="lang-btn" id="lang-pt" onclick="setLang('pt')">PT</div>
+        </div>
+
+        <header>
+            <div class="case-no" id="case-no">DOSSIÊ Nº — CONFRONTO DE FONTES</div>
+            <h1 id="page-title">Dossiê de Confronto</h1>
+            <div class="subtitle" id="page-subtitle">Gera prompts para testar uma fonte-alvo contra as demais no NotebookLM — auditoria, devil's advocate, debate ou matriz.</div>
+        </header>
+
+        <section>
+            <div class="section-label" id="lbl-categoria">MODO DE CONFRONTO</div>
+            <div class="tabs" id="tabs"></div>
+            <div class="tab-body" id="tab-body"></div>
+        </section>
+
+        <section>
+            <div class="section-label" id="lbl-exhibits">PEÇAS DO DOSSIÊ</div>
+            <div class="exhibits">
+                <div class="exhibit alvo">
+                    <div class="exhibit-tag"><span class="dot"></span><span id="tag-alvo">FONTE-ALVO</span> <span class="req">*</span></div>
+                    <input type="text" id="in-alvo" oninput="handleFormInput()">
+                    <div class="opt-hint" id="hint-alvo"></div>
+                    <div class="field-error" id="error-alvo" role="alert"></div>
+                </div>
+                <div class="exhibit contraponto">
+                    <div class="exhibit-tag"><span class="dot"></span><span id="tag-contraponto">CONTRAPONTO TEÓRICO</span></div>
+                    <textarea id="in-contraponto" oninput="handleFormInput()"></textarea>
+                    <div class="opt-hint" id="hint-contraponto"></div>
+                    <div class="field-error" id="error-contraponto" role="alert"></div>
+                </div>
+                <div class="exhibit evidencia">
+                    <div class="exhibit-tag"><span class="dot"></span><span id="tag-evidencia">EVIDÊNCIA INDEPENDENTE</span></div>
+                    <textarea id="in-evidencia" oninput="handleFormInput()"></textarea>
+                    <div class="opt-hint" id="hint-evidencia"></div>
+                    <div class="field-error" id="error-evidencia" role="alert"></div>
+                </div>
+                <div class="exhibit contexto">
+                    <div class="exhibit-tag"><span class="dot"></span><span id="tag-contexto">CONTEXTO RESTRITO</span></div>
+                    <textarea id="in-contexto" oninput="handleFormInput()"></textarea>
+                    <div class="opt-hint" id="hint-contexto"></div>
+                    <div class="field-error" id="error-contexto" role="alert"></div>
+                </div>
+            </div>
+            <div class="selection-notice" id="selection-notice"></div>
+        </section>
+
+        <section id="relation-section">
+            <div class="section-label" id="lbl-relation">TIPO DE RELAÇÃO</div>
+            <div class="relation-grid">
+                <select id="relation-type" onchange="setRelationType(this.value)"></select>
+                <div class="relation-help" id="relation-help"></div>
+            </div>
+            <div class="field-error" id="error-relation" role="alert"></div>
+        </section>
+
+        <section>
+            <div class="section-label" id="lbl-foco">FOCO ESPECÍFICO (OPCIONAL)</div>
+            <textarea id="foco" oninput="handleFormInput()"></textarea>
+            <div class="opt-hint" id="hint-foco"></div>
+        </section>
+
+        <section>
+            <div class="section-label" id="lbl-restricoes">RESTRIÇÕES METODOLÓGICAS (OPCIONAL)</div>
+            <textarea id="restricoes" oninput="handleFormInput()"></textarea>
+            <div class="opt-hint" id="hint-restricoes"></div>
+            <div class="budget-line" id="budget-line"></div>
+        </section>
+
+        <section>
+            <div class="section-label" id="lbl-modos">MODOS</div>
+            <div class="toggle-row" id="row-rigor" onclick="toggleRigor()">
+                <div class="toggle-info">
+                    <div class="toggle-label" id="lbl-rigor">🔬 Modo Rigoroso</div>
+                    <div class="toggle-desc" id="desc-rigor">Classifica transferências entre domínios e marca julgamento comparativo como interpretação</div>
+                </div>
+                <div class="stamp-switch" id="switch-rigor"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row" id="row-podcast" onclick="togglePodcast()">
+                <div class="toggle-info">
+                    <div class="toggle-label" id="lbl-podcast">🎙️ Modo Podcast (Deep Dive)</div>
+                    <div class="toggle-desc" id="desc-podcast">Escopo estrito, sem analogia inventada, atribuição falada para o Audio Overview</div>
+                </div>
+                <div class="stamp-switch" id="switch-podcast"><div class="knob"></div></div>
+            </div>
+        </section>
+
+        <div class="form-error" id="form-error" role="alert" aria-live="polite"></div>
+        <button class="generate" id="btn-generate" onclick="generatePrompt()">Gerar prompt do dossiê</button>
+
+        <div id="output-section">
+            <div class="section-label" id="lbl-output">PROMPT GERADO</div>
+            <pre id="prompt-output"></pre>
+            <div class="output-bar">
+                <div class="char-count" id="char-count"></div>
+                <button class="copy" id="btn-copy" onclick="copyPrompt()">📋 <span id="copy-text">Copiar</span></button>
+            </div>
+        </div>
+
+        <footer id="footer-note">Cole o prompt no campo de geração de artifact do NotebookLM (limite de 5.000 caracteres). Papel é propriedade da operação, não da fonte — o mesmo código pode ser alvo numa execução e contraponto em outra.</footer>
+    </div>
+
+    <script>
+// ============================================================
+// ESTADO
+// ============================================================
+/* ── Destino do prompt e guardrails ───────────────────────────────────
+   Origem canônica dos guardrails: suite.html, const SP.
+   O painel Studio do NotebookLM não herda o campo Custom Instructions e
+   roda outro modelo, mais rápido e de qualidade inferior. Prompts com
+   destino "studio" carregam os guardrails inline; prompts com destino
+   "chat" os herdam do system prompt e não devem repeti-los.
+   Cópia replicada em dossie.html, lab.html e studio.html: as páginas são
+   standalone, sem build. Ao editar uma, edite as três. */
+const CITACAO_ESCRITA=`<citacao>Abra com a seção Fontes: uma linha por fonte usada, ETIQUETA — nome-arquivo.ext, cap. X(.Y). A etiqueta é o sobrenome do autor em maiúsculas, ou palavras do título quando não houver autor, e não muda. No corpo, cada afirmação leva ETIQUETA [n] na mesma frase, sem repetir arquivo nem capítulo. Nunca remova o [n]: é ele que gera o link clicável. Em trecho contínuo da mesma fonte, cite só na primeira frase.</citacao>`;
+
+/* Em áudio não há índice clicável nem seção a consultar: a atribuição precisa
+   caber na fala, ou o apresentador lê "colchete um" em voz alta. */
+const CITACAO_FALADA=`<citacao>Nomeie a fonte em voz alta quando a procedência mudar: "no livro de Setiya", "no relatório sobre o fígado". Não leia nome de arquivo, capítulo nem índice numérico: em áudio viram ruído.</citacao>`;
+
+function guardrails(falada){return `<guardrails>
+${falada?CITACAO_FALADA:CITACAO_ESCRITA}
+
+<inferencia>Apresente a posição de cada fonte separadamente antes de qualquer síntese. Toda conexão que você constrói entre elas é marcada como sua: "Infiro X juntando A e B; nenhuma fonte afirma isso diretamente."${falada?'':' Vale sobretudo em tabelas, onde a inferência se disfarça de dado.'}</inferencia>
+
+<divergencia>Preserve o conflito entre fontes. Ele é o achado, não um problema a resolver.</divergencia>
+
+<lacuna>"As fontes não abordam este ponto" é resposta válida. Não preencha silêncio com suposição, nem trate ausência como falsidade.</lacuna>
+
+<incerteza>Quantifique evidência fraca em vez de suavizá-la. Sem "provavelmente", sem "é razoável supor".</incerteza>${falada?'':`
+
+<bibliografia>Não fabrique DOI, página, editora, cidade, ano ou ISBN ausente da fonte. Campo ausente é marcado como ausente.</bibliografia>`}
+</guardrails>`;}
+
+/* Fidelidade: a ressalva que a fonte não traz é uma distorção dela. Vale
+   sempre, como o <estilo>, e não responde à chave de guardrails. A cláusula
+   final evita que ela anule os templates que pedem crítica. Mesma regra no
+   SP da suite.html, para os prompts que vão ao chat. */
+const FIDELIDADE=`<fidelidade>
+Reconstrua o argumento de cada fonte com a força que o autor lhe deu, até as conclusões dele e no tom dele.
+Não acrescente ressalva, "outro lado" nem aviso de controvérsia que a fonte não traga: equilibrá-la com o que ela não diz é distorcê-la.
+Crítica, quando pedida, vem depois da reconstrução, marcada como sua.
+</fidelidade>`;
+
+const ESTILO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Cada parágrafo cumpre uma função: atribuir, comparar, contestar, demonstrar ou declarar um limite.
+Corte dramatização, título grandioso, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+Elimine toda frase cuja retirada não altere a informação, a evidência ou o raciocínio.
+</estilo>`;
+
+/* Em áudio não há parágrafo nem título: as regras de economia do texto
+   escrito saem, e ficam as que valem para a fala. */
+const ESTILO_FALADO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Corte dramatização, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+</estilo>`;
+
+const TETOS={custom:10000,chat:4000,studio:5000};
+const DESTINO_ROTULO={custom:'Custom Instructions',chat:'Chat principal',studio:'Painel Studio'};
+
+/* Medidor de destino e consumo do teto. Devolve HTML para um único elemento,
+   para não exigir marcação nova em cada página. */
+function medidorHtml(n,destino){
+  const teto=TETOS[destino],pct=Math.min(100,Math.round(n/teto*100));
+  return `<span class="medidor${n>teto?' excesso':''}">`
+    +`<span class="destino">${DESTINO_ROTULO[destino]}</span>`
+    +`<span class="barra"><i style="width:${pct}%"></i></span>`
+    +`<span class="numero">${n.toLocaleString('pt-BR')} / ${teto.toLocaleString('pt-BR')}</span>`
+    +`</span>`;
+}
+
+/* <fidelidade> e <estilo> acompanham sempre o destino Studio: o estilo barra
+   a analogia inventada, a fidelidade barra a ressalva inventada, e desligar
+   guardrails para ganhar espaço não deve devolvê-las. Só o bloco epistêmico
+   responde à chave. Em áudio o bloco epistêmico perde a bibliografia e a
+   menção a tabelas, que não existem na fala. */
+function comGuardrails(corpo,destino,opcoes){
+  const o=opcoes||{};
+  if(destino!=='studio')return corpo.trimEnd();
+  const partes=[corpo.trimEnd()];
+  if(o.epistemico!==false)partes.push(guardrails(o.falada===true));
+  partes.push(FIDELIDADE,o.falada===true?ESTILO_FALADO:ESTILO);
+  return partes.join('\n\n');
+}
+
+let lang='pt';
+let activeCategory='audit';
+let rigorOn=true;
+let podcastOn=false;
+let auditRigidity='branda';
+let debateVerdict=false;
+let relationType='not_informed';
+
+const i18n={
+  pt:{
+    pageTitle:'Dossiê de Confronto',
+    pageSubtitle:'Gera prompts para confrontar fontes no NotebookLM com papéis explícitos, validação e controle de escopo.',
+    caseNo:'DOSSIÊ Nº — CONFRONTO DE FONTES',
+    lblCategoria:'MODO DE CONFRONTO',lblExhibits:'PEÇAS DO DOSSIÊ',lblRelation:'TIPO DE RELAÇÃO',
+    lblFoco:'FOCO ESPECÍFICO (OPCIONAL)',lblRestricoes:'RESTRIÇÕES METODOLÓGICAS (OPCIONAL)',
+    lblModos:'MODOS',lblOutput:'PROMPT GERADO',
+    tagAlvo:'FONTE-ALVO',tagContraponto:'CONTRAPONTO TEÓRICO',tagEvidencia:'EVIDÊNCIA INDEPENDENTE',tagContexto:'CONTEXTO RESTRITO',
+    hintAlvo:'Use o título exato exibido no painel de fontes do NotebookLM.',
+    hintContraponto:'Uma fonte por linha. Deve sustentar uma proposição incompatível ou significativamente divergente sobre o mesmo problema. Proximidade temática não basta.',
+    hintEvidencia:'Uma fonte por linha. Deve ser distinta dos polos teóricos e testar a proposição em disputa. Casos internos ao próprio contraponto não são evidência independente.',
+    hintContexto:'Uma fonte por linha. Use somente para período, definições ou delimitação histórica. Se sustenta ou contesta um polo, deixe este campo vazio.',
+    selectionNotice:'<strong>Seleção no NotebookLM:</strong> antes de gerar o artifact, mantenha selecionadas somente as fontes usadas neste dossiê. Fontes adicionais podem assumir os papéis definidos no prompt.',
+    focoPlaceholder:'Qual proposição, afirmação ou transferência conceitual deve ser examinada?',
+    hintFoco:'Cole somente a pergunta ou operação central. Não inclua categoria recomendada, riscos, veredito antecipado ou instruções para favorecer um lado.',
+    restricoesPlaceholder:'Ex.: auditar a analogia em si; não tratar casos internos ao contraponto como evidência direta.',
+    hintRestricoes:'Use para condições indispensáveis vindas do Refinamento 4B. Não repita o Foco nem antecipe a conclusão.',
+    lblRigor:'🔬 Modo Rigoroso',descRigor:'Classifica transferências entre domínios e marca julgamento comparativo como interpretação',
+    lblPodcast:'🎙️ Modo Podcast (Deep Dive)',descPodcast:'Escopo estrito, sem analogia inventada, atribuição falada para o Audio Overview',
+    btnGenerate:'Gerar prompt do dossiê',copy:'Copiar',copied:'Copiado!',
+    footerNote:'Cole o prompt no campo de geração de artifact do NotebookLM (limite de 5.000 caracteres). Os papéis pertencem a esta execução e cada fonte deve ocupar uma função distinta.',
+    charLimit:n=>`${n} caracteres (limite NotebookLM: 5000)`,
+    charWarn:n=>`⚠️ ${n} caracteres — excede o limite de 5000 em ${n-5000}.`,
+    budgetAvailable:n=>`${n} caracteres disponíveis no prompt`,
+    budgetOver:n=>`⚠️ ${n} caracteres acima do limite do prompt`,
+    copyFailed:'Não foi possível copiar. Selecione e copie o prompt manualmente.',
+    errors:{
+      target:'Informe a Fonte-Alvo.',
+      duplicate:'A mesma fonte ocupa mais de um papel. Cada peça do dossiê deve ter uma função distinta nesta execução.',
+      debate:'Debate Estruturado exige ao menos uma fonte de Contraponto.',
+      matrix:'Matriz Comparativa exige Contraponto ou Evidência independente.',
+      analogical:'Relações analógicas devem ser processadas como Auditoria da própria transferência conceitual.'
+    },
+    relations:{
+      not_informed:{label:'Não informado',help:'O prompt não aplicará uma regra adicional de comparabilidade.'},
+      direct:{label:'Direta',help:'As fontes discordam explicitamente ou sustentam proposições incompatíveis sobre o mesmo objeto.'},
+      reconstructed:{label:'Reconstruída',help:'As fontes não dialogam diretamente, mas tratam um problema comparável.'},
+      analogical:{label:'Analógica',help:'Uma teoria será aplicada a um objeto que ela própria não examina. O Dossiê deve auditar a validade dessa transferência.'}
+    },
+    categories:{
+      audit:{icon:'🔍',label:'Auditoria',hint:'Examina o que a Fonte-Alvo sustenta, o que outras fontes alteram e o que permanece sem base.',hasRigidity:true},
+      devil:{icon:'😈',label:"Devil's Advocate",hint:'Teste adversarial da Fonte-Alvo sem presumir culpa nem fabricar fragilidades.'},
+      debate:{icon:'🎭',label:'Debate Estruturado',hint:'Rodadas de argumento, objeção, resposta e tréplica sobre a mesma proposição.',hasVerdictToggle:true},
+      matrix:{icon:'📊',label:'Matriz Comparativa',hint:'Comparação controlada de afirmações com vocabulário de status fixo.'}
+    },
+    mild:'branda',rigid:'rígida — não harmonizar',verdictToggle:'incluir veredito provisório',
+    verdictWarning:'Inconclusivo, evidência insuficiente e incomensurabilidade parcial são resultados válidos.',
+    prompt:{
+      raiz:'dossie_de_confronto',
+      scope:[
+        'Primeira seção do artefato. Não escreva título, introdução ou enquadramento antes dela.',
+        'Identifique as fontes efetivamente localizadas e o papel atribuído a cada uma. Use exclusivamente as fontes nomeadas neste prompt; não substitua uma fonte ausente por outra que esteja ativa no notebook.',
+        'Se a Fonte-Alvo não for localizada, declare o problema e interrompa o relatório. Se uma fonte opcional não for localizada, declare a ausência e prossiga somente se o modo continuar viável.'
+      ].join('\n'),
+      targetRole:'fonte_alvo',counterRole:'contraponto',evidenceRole:'evidencia_independente',contextRole:'contexto_restrito',
+      counterDefinition:'Use o Contraponto somente para sustentar uma proposição divergente sobre o problema em disputa.',
+      evidenceDefinition:'Use a Evidência independente para testar as proposições dos dois polos. Ela não pertence automaticamente ao Lado 2.',
+      contextDefinition:'Use o Contexto restrito somente para período, definições ou delimitação. Não o utilize como premissa, objeção, evidência ou fundamento do veredito.',
+      directRelation:'Direta: as fontes discordam explicitamente ou sustentam proposições incompatíveis sobre o mesmo objeto.',
+      reconstructedRelation:'Reconstruída: as fontes não dialogam diretamente. Reconstrua a divergência sem atribuir a um autor uma resposta que ele não formulou.',
+      analogical:[
+        'O objeto desta auditoria é a validade da aplicação conceitual entre fontes, não um diagnóstico direto do objeto estudado.',
+        '',
+        'Separe:',
+        '1. o que cada fonte afirma sobre seu próprio objeto;',
+        '2. a aplicação proposta ao objeto da outra fonte;',
+        '3. a justificativa da ponte;',
+        '4. os limites da transferência;',
+        '5. interpretações alternativas.',
+        '',
+        'Não converta analogia em diagnóstico, exemplo interno em evidência independente, descrição em explicação causal ou vocabulário técnico em prova.'
+      ].join('\n'),
+      auditItems:{
+        target:'Reconstrua a Fonte-Alvo: tese central, método, suporte principal e pressupostos.',
+        counter:'Reconstrua separadamente as proposições relevantes do Contraponto.',
+        evidence:'Quando houver Evidência independente, teste com ela as proposições dos dois polos.',
+        status:'Para cada ponto analisado, use exatamente um resultado: CONFIRMADO, CORRIGIDO, ENFRAQUECIDO, NÃO ABORDADO ou INCOMPARÁVEL.',
+        explain:'Explique o resultado com passagens identificáveis das fontes.',
+        finish:'Finalize indicando o que permanece sustentado e quais lacunas exigem novas fontes.'
+      },
+      auditRigid:'Não harmonize divergências reais. Teste pressupostos, mudanças de escala, assimetrias de evidência e incompatibilidades metodológicas.\nSe as fontes não forem comparáveis num ponto, use INCOMPARÁVEL. Não crie síntese apenas para encerrar o relatório.',
+      devilIntro:'Submeta a Fonte-Alvo a um teste adversarial rigoroso. Não presuma que ela esteja errada e não fabrique fragilidades. Organize o artefato nas seções abaixo.',
+      devilInternal:'Tensões entre premissas, argumentos e conclusões da própria Fonte-Alvo. Não inclua aqui desacordos externos.',
+      devilSelectionExternal:'Identifique seleção tendenciosa somente quando outra fonte documentar informação relevante omitida sobre o mesmo ponto.',
+      devilSelectionInternal:'Examine omissões somente quando a própria Fonte-Alvo declarar escopo, critério ou conjunto de dados que permita identificá-las. Não presuma informação externa.',
+      devilSupport:'Localize afirmações cujo alcance exceda o suporte apresentado. Diferencie ausência de suporte de simples desacordo teórico.',
+      devilCounterExternal:'Construa o contra-argumento mais forte permitido pelas fontes fornecidas. Se o material não sustentar um contra-argumento forte, declare isso.',
+      devilCounterInternal:'Construa o contra-argumento mais forte permitido pelos argumentos, dados e pressupostos internos da Fonte-Alvo. Se ela não fornecer base para isso, declare a limitação.',
+      debateIntro:'Para cada proposição central em disputa, apresente uma rodada completa.',
+      debateSteps:{
+        side1:{nome:'argumento_lado_1',texto:'Fundamente exclusivamente na Fonte-Alvo.'},
+        side2:{nome:'objecao_lado_2',texto:'Fundamente exclusivamente no Contraponto.'},
+        reply:{nome:'resposta_lado_1',texto:'Responda à objeção sem introduzir fontes externas.'},
+        rejoinder:{nome:'treplica_lado_2',texto:'Responda ao argumento efetivamente apresentado.'},
+        evidence:{nome:'teste_pela_evidencia',texto:'Use a Evidência independente para testar os dois lados, não para reforçar automaticamente o Lado 2.'},
+        unresolved:{nome:'ponto_nao_resolvido',texto:'Declare o que as fontes não permitem decidir.'}
+      },
+      noConsensus:'Não force consenso.',
+      verdict:'Escolha somente entre: LADO 1 MAIS SUSTENTADO, LADO 2 MAIS SUSTENTADO, INCONCLUSIVO, EVIDÊNCIA INSUFICIENTE ou POSIÇÕES PARCIALMENTE INCOMENSURÁVEIS.\nJustifique com base nas fontes e marque o veredito como INTERPRETAÇÃO.',
+      matrixIntro:'Rastreie as afirmações indicadas no foco específico. Se o foco estiver vazio, extraia de 5 a 8 afirmações centrais da Fonte-Alvo.',
+      matrixCell:'Identifique a fonte em cada célula. Se uma fonte não tratar do ponto, escreva NÃO ABORDA.',
+      matrixStatus:'Na coluna Status use exatamente um valor: CONFIRMADA, CONTESTADA ou SEM BASE NAS FONTES. Não combine valores nem crie categorias novas.',
+      rigor:[
+        'Classifique toda aplicação entre domínios como direta, indireta ou analógica. Não transforme analogia em prova.',
+        'Marque todo julgamento comparativo entre fontes como INTERPRETAÇÃO, distinguindo-o do que cada fonte afirma sobre o próprio objeto.',
+        'Quando as fontes não forem comparáveis num ponto, use INCOMPARÁVEL em vez de forçar equivalência.'
+      ].join('\n'),
+      podcast:[
+        'Escopo estrito: discuta exclusivamente as fontes nomeadas neste dossiê. Não recorra às demais fontes do notebook nem a dados externos.',
+        'Formato de áudio: escreva scripts diretos. Não instrua entonação, pausas, música ou elementos vocais.',
+        'Analogia inventada: não use. Imagem e comparação só quando estão na fonte, ditas como dela — nada de raio X, iceberg ou quebra-cabeça. Sem imagem na fonte, descreva o mecanismo.'
+      ].join('\n')
+    }
+  },
+  en:{
+    pageTitle:'Confrontation Dossier',
+    pageSubtitle:'Generates prompts to confront sources in NotebookLM with explicit roles, validation, and scope control.',
+    caseNo:'CASE NO. — SOURCE CONFRONTATION',
+    lblCategoria:'CONFRONTATION MODE',lblExhibits:'DOSSIER EXHIBITS',lblRelation:'RELATION TYPE',
+    lblFoco:'SPECIFIC FOCUS (OPTIONAL)',lblRestricoes:'METHODOLOGICAL RESTRICTIONS (OPTIONAL)',
+    lblModos:'MODES',lblOutput:'GENERATED PROMPT',
+    tagAlvo:'TARGET SOURCE',tagContraponto:'THEORETICAL COUNTERPOINT',tagEvidencia:'INDEPENDENT EVIDENCE',tagContexto:'RESTRICTED CONTEXT',
+    hintAlvo:'Use the exact title shown in the NotebookLM sources panel.',
+    hintContraponto:'One source per line. It must support an incompatible or significantly divergent proposition about the same problem. Thematic proximity is not enough.',
+    hintEvidencia:'One source per line. It must be distinct from the theoretical poles and test the proposition in dispute. Cases internal to the counterpoint are not independent evidence.',
+    hintContexto:'One source per line. Use only for period, definitions, or historical delimitation. If it supports or contests a pole, leave this field empty.',
+    selectionNotice:'<strong>NotebookLM selection:</strong> before generating the artifact, keep only the sources used in this dossier selected. Additional sources may take over the roles defined in the prompt.',
+    focoPlaceholder:'Which proposition, claim, or conceptual transfer should be examined?',
+    hintFoco:'Paste only the central question or operation. Do not include a recommended category, risks, an advance verdict, or instructions to favor one side.',
+    restricoesPlaceholder:'E.g., audit the analogy itself; do not treat cases internal to the counterpoint as direct evidence.',
+    hintRestricoes:'Use for indispensable conditions from Refinement 4B. Do not repeat the Focus or anticipate the conclusion.',
+    lblRigor:'🔬 Rigorous Mode',descRigor:'Classifies cross-domain transfers and marks comparative judgment as interpretation',
+    lblPodcast:'🎙️ Podcast Mode (Deep Dive)',descPodcast:'Strict scope, no invented analogy, spoken attribution for Audio Overview',
+    btnGenerate:'Generate dossier prompt',copy:'Copy',copied:'Copied!',
+    footerNote:'Paste the prompt into NotebookLM’s artifact-generation field (5,000-character limit). Roles belong to this run, and each source must have a distinct function.',
+    charLimit:n=>`${n} characters (NotebookLM limit: 5000)`,
+    charWarn:n=>`⚠️ ${n} characters — exceeds the 5000 limit by ${n-5000}.`,
+    budgetAvailable:n=>`${n} characters available in the prompt`,
+    budgetOver:n=>`⚠️ ${n} characters over the prompt limit`,
+    copyFailed:'Copy failed. Select and copy the prompt manually.',
+    errors:{
+      target:'Enter the Target Source.',
+      duplicate:'The same source occupies more than one role. Each dossier exhibit must have a distinct function in this run.',
+      debate:'Structured Debate requires at least one Counterpoint source.',
+      matrix:'Comparison Matrix requires a Counterpoint or independent Evidence source.',
+      analogical:'Analogical relations must be processed as an Audit of the conceptual transfer itself.'
+    },
+    relations:{
+      not_informed:{label:'Not informed',help:'The prompt will not apply an additional comparability rule.'},
+      direct:{label:'Direct',help:'The sources explicitly disagree or support incompatible propositions about the same object.'},
+      reconstructed:{label:'Reconstructed',help:'The sources do not directly engage each other but address a comparable problem.'},
+      analogical:{label:'Analogical',help:'A theory will be applied to an object it does not itself examine. The Dossier must audit the validity of that transfer.'}
+    },
+    categories:{
+      audit:{icon:'🔍',label:'Audit',hint:'Examines what the Target Source supports, what other sources change, and what remains unsupported.',hasRigidity:true},
+      devil:{icon:'😈',label:"Devil's Advocate",hint:'Adversarial test of the Target Source without presuming fault or fabricating weaknesses.'},
+      debate:{icon:'🎭',label:'Structured Debate',hint:'Rounds of argument, objection, reply, and rejoinder about the same proposition.',hasVerdictToggle:true},
+      matrix:{icon:'📊',label:'Comparison Matrix',hint:'Controlled comparison of claims using a fixed status vocabulary.'}
+    },
+    mild:'mild',rigid:'rigid — do not harmonize',verdictToggle:'include provisional verdict',
+    verdictWarning:'Inconclusive, insufficient evidence, and partial incommensurability are valid outcomes.',
+    prompt:{
+      scope:[
+        '**SCOPE AND SOURCE CONTROL**','',
+        'This must be the first section of the artifact. Do not write a title, introduction, or framing before it.','',
+        'Identify the sources actually located and the role assigned to each one. Use only the sources named in this prompt; do not replace a missing source with another source active in the notebook.','',
+        'If the Target Source cannot be located, state the problem and stop the report. If an optional source cannot be located, state its absence and proceed only if the mode remains viable.'
+      ].join('\n'),
+      raiz:'dossie_de_confronto',targetRole:'fonte_alvo',counterRole:'contraponto',evidenceRole:'evidencia_independente',contextRole:'contexto_restrito',
+      counterDefinition:'Use the Counterpoint only to support a divergent proposition about the problem in dispute.',
+      evidenceDefinition:'Use independent Evidence to test the propositions of both poles. It does not automatically belong to Side 2.',
+      contextDefinition:'Use restricted Context only for period, definitions, or delimitation. Do not use it as a premise, objection, evidence, or basis for the verdict.',
+      relationTitle:'**RELATION TYPE**',directRelation:'Direct: the sources explicitly disagree or support incompatible propositions about the same object.',
+      reconstructedRelation:'Reconstructed: the sources do not directly engage each other; reconstruct the divergence without attributing to an author an answer they did not formulate.',
+      analogical:[
+        '**TRANSFER BETWEEN DOMAINS**','',
+        'The object of this audit is the validity of the conceptual application between sources, not a direct diagnosis of the object under study.','',
+        'Separate:','1. what each source claims about its own object;','2. the proposed application to the other source’s object;','3. the justification for the bridge;','4. the limits of the transfer;','5. alternative interpretations.','',
+        'Do not convert analogy into diagnosis, an internal example into independent evidence, description into causal explanation, or technical vocabulary into proof.'
+      ].join('\n'),
+      auditTitle:'**AUDIT**',
+      auditItems:{target:'Reconstruct the Target Source: central thesis, method, main support, and assumptions.',counter:'Separately reconstruct the relevant propositions from the Counterpoint.',evidence:'When independent Evidence is present, use it to test the propositions of both poles.',status:'For each point analyzed, use exactly one result:\n   - CONFIRMED\n   - CORRECTED\n   - WEAKENED\n   - NOT ADDRESSED\n   - INCOMPARABLE',explain:'Explain the result with identifiable passages from the sources.',finish:'Finish by stating what remains supported and which gaps require new sources.'},
+      auditRigid:'Do not harmonize real divergences. Test assumptions, shifts in scale, asymmetries of evidence, and methodological incompatibilities.\n\nIf the sources are not comparable on a point, use INCOMPARABLE. Do not create a synthesis merely to close the report.',
+      devilTitle:'**ADVERSARIAL TEST**',
+      devilIntro:'Subject the Target Source to a rigorous adversarial test. Do not presume it is wrong and do not fabricate weaknesses.\n\nOrganize the artifact into these sections:',
+      devilInternal:'**INTERNAL INCONSISTENCIES**\nTensions among the Target Source’s own premises, arguments, and conclusions. Do not include external disagreements here.',
+      devilSelectionExternal:'**SELECTION AND OMISSIONS**\nIdentify selective treatment only when another source documents relevant omitted information about the same point.',
+      devilSelectionInternal:'**SELECTION AND OMISSIONS**\nExamine omissions only when the Target Source itself states a scope, criterion, or data set that makes them identifiable. Do not presume external information.',
+      devilSupport:'**CLAIMS WITH INSUFFICIENT SUPPORT**\nLocate claims whose reach exceeds the support presented. Distinguish lack of support from mere theoretical disagreement.',
+      devilCounterExternal:'**BEST AVAILABLE COUNTERARGUMENT**\nBuild the strongest counterargument allowed by the supplied sources. If the material does not support a strong counterargument, state that.',
+      devilCounterInternal:'**BEST AVAILABLE COUNTERARGUMENT**\nBuild the strongest counterargument allowed by the Target Source’s internal arguments, data, and assumptions. If it provides no basis for one, state the limitation.',
+      debateTitle:'**STRUCTURED DEBATE**',debateIntro:'For each central proposition in dispute, present a complete round:',
+      debateSteps:{side1:{nome:'argumento_lado_1',texto:'Ground it exclusively in the Target Source.'},side2:{nome:'objecao_lado_2',texto:'Ground it exclusively in the Counterpoint.'},reply:{nome:'resposta_lado_1',texto:'Answer the objection without introducing external sources.'},rejoinder:{nome:'treplica_lado_2',texto:'Respond to the argument actually presented.'},evidence:{nome:'teste_pela_evidencia',texto:'Use it to test both sides, not to reinforce Side 2 automatically.'},unresolved:{nome:'ponto_nao_resolvido',texto:'State what the sources do not allow you to decide.'}},
+      noConsensus:'Do not force consensus.',
+      verdict:[
+        '**PROVISIONAL VERDICT**','',
+        'Choose only from:','- SIDE 1 BETTER SUPPORTED','- SIDE 2 BETTER SUPPORTED','- INCONCLUSIVE','- INSUFFICIENT EVIDENCE','- PARTIALLY INCOMMENSURABLE POSITIONS','',
+        'Justify the choice from the sources and mark the verdict as INTERPRETATION.'
+      ].join('\n'),
+      matrixTitle:'**COMPARISON MATRIX**',
+      matrixIntro:'Track the claims identified in Specific Focus. If the field is empty, extract 5 to 8 central claims from the Target Source.',
+      matrixCell:'Identify the source in each cell. If a source does not address the point, write `DOES NOT ADDRESS`.',
+      matrixStatus:'In the Status column, use exactly one value:\n- CONFIRMED\n- CONTESTED\n- NO BASIS IN THE SOURCES\n\nDo not combine values or create new categories.',
+      focusTitle:'**SPECIFIC FOCUS**',restrictionsTitle:'**METHODOLOGICAL RESTRICTIONS**',
+      rigor:[
+        '**RIGOROUS MODE**','',
+        '- EXTRACTION AND INTERPRETATION: every claim about a source must be traceable. Mark comparative judgments as INTERPRETATION.',
+        '- NO FABRICATION: do not invent quotations, data, contradictions, bias, or consensus.',
+        '- GAPS: when a source does not cover a point, state the gap.',
+        '- TRANSFER: classify cross-domain applications as direct, indirect, or analogical. Do not turn analogy into proof.',
+        '- CITATION: identify the source supporting each central claim by short title, author, or available marker.'
+      ].join('\n'),
+      podcast:[
+        '**PODCAST MODE (DEEP DIVE)**','',
+        '- STRICT SCOPE: base the discussion exclusively on the dossier sources; do not insert external data or frameworks.',
+        '- NO GENERIC ANALOGIES: do not use stock comparisons or catchphrases absent from the sources.',
+        '- AUDIO FORMAT: write direct scripts. Do not instruct intonation, pauses, music, or vocal elements.'
+      ].join('\n'),
+      style:[
+        '**STYLE**','',
+        'Write with journalistic clarity: direct sentences, common words, and concrete verbs.','',
+        'Each paragraph must serve one function: attribute, compare, contest, demonstrate, or state a limit.','',
+        'Remove decorative metaphors, empty analogies, dramatization, grand titles, repetition, dispensable jargon, rhetorical antitheses, and impact conclusions. Do not use a rare word when a common one will do.','',
+        'Remove every sentence whose deletion would not change the information, evidence, or reasoning.'
+      ].join('\n')
+    }
+  }
+};
+
+function parseSources(value){return value.split(/\r?\n/).map(source=>source.trim()).filter(Boolean)}
+
+function stripWrappingMarks(value){
+  const pairs=[['`','`'],['"','"'],["'","'"],['“','”'],['‘','’']];
+  for(const [open,close] of pairs){
+    if(value.startsWith(open)&&value.endsWith(close)&&value.length>=open.length+close.length)return value.slice(open.length,-close.length).trim();
+  }
+  return value;
+}
+
+function normalizeSource(value){
+  const normalized=value.trim().toLocaleLowerCase().replace(/\s+/g,' ');
+  return stripWrappingMarks(normalized);
+}
+
+function displaySource(value){
+  return stripWrappingMarks(value.trim()).replace(/`/g,'\\`');
+}
+
+/* Escapa texto vindo do formulário: nome de fonte, foco e restrições podem
+   conter & ou <, que quebrariam o XML entregue ao modelo. */
+function esc(value){return String(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function sourceLines(sources){return sources.map(source=>`<arquivo>${esc(displaySource(source))}</arquivo>`).join('\n')}
+
+function collectFormState(){
+  return {
+    lang,category:activeCategory,auditRigidity,debateVerdict,rigorOn,podcastOn,relationType,
+    target:document.getElementById('in-alvo').value.trim(),
+    counterpoints:parseSources(document.getElementById('in-contraponto').value),
+    evidence:parseSources(document.getElementById('in-evidencia').value),
+    context:parseSources(document.getElementById('in-contexto').value),
+    focus:document.getElementById('foco').value.trim(),
+    restrictions:document.getElementById('restricoes').value.trim()
+  };
+}
+
+function findDuplicateSources(state){
+  const entries=[];
+  if(state.target)entries.push({source:state.target,fieldId:'in-alvo'});
+  [['counterpoints','in-contraponto'],['evidence','in-evidencia'],['context','in-contexto']].forEach(([role,fieldId])=>{
+    state[role].forEach(source=>entries.push({source,fieldId}));
+  });
+  const seen=new Map();
+  for(const entry of entries){
+    const key=normalizeSource(entry.source);
+    if(seen.has(key))return {first:seen.get(key),duplicate:entry};
+    seen.set(key,entry);
+  }
+  return null;
+}
+
+function validateForm(state){
+  const t=i18n[state.lang];
+  const messages=[];
+  let fieldId='';
+  if(!state.target){messages.push(t.errors.target);fieldId='in-alvo'}
+  const duplicate=findDuplicateSources(state);
+  if(duplicate){messages.push(t.errors.duplicate);if(!fieldId)fieldId=duplicate.duplicate.fieldId}
+  if(state.category==='debate'&&!state.counterpoints.length){messages.push(t.errors.debate);if(!fieldId)fieldId='in-contraponto'}
+  if(state.category==='matrix'&&!state.counterpoints.length&&!state.evidence.length){messages.push(t.errors.matrix);if(!fieldId)fieldId='in-contraponto'}
+  if(state.relationType==='analogical'&&state.category!=='audit'){messages.push(t.errors.analogical);if(!fieldId)fieldId='relation-type'}
+  return {valid:messages.length===0,messages,fieldId};
+}
+
+/* Envolve conteúdo num elemento XML, com indentação de dois espaços. */
+function tag(nome,conteudo,attrs){
+  if(!conteudo)return '';
+  const a=attrs?' '+Object.entries(attrs).map(([k,v])=>`${k}="${v}"`).join(' '):'';
+  const corpo=String(conteudo).split('\n').map(l=>l?'  '+l:l).join('\n');
+  return `<${nome}${a}>\n${corpo}\n</${nome}>`;
+}
+
+function buildScopeBlock(state){return tag('escopo',i18n[state.lang].prompt.scope)}
+
+function buildRolesBlock(state){
+  const p=i18n[state.lang].prompt;
+  const blocos=[];
+  if(state.target)blocos.push(tag(p.targetRole,sourceLines([state.target])));
+  if(state.counterpoints.length)blocos.push(tag(p.counterRole,sourceLines(state.counterpoints)+'\n'+p.counterDefinition));
+  if(state.evidence.length)blocos.push(tag(p.evidenceRole,sourceLines(state.evidence)+'\n'+p.evidenceDefinition));
+  if(state.context.length)blocos.push(tag(p.contextRole,sourceLines(state.context)+'\n'+p.contextDefinition));
+  return tag('pecas',blocos.join('\n'));
+}
+
+function buildRelationBlock(state){
+  const p=i18n[state.lang].prompt;
+  if(state.relationType==='not_informed')return '';
+  if(state.relationType==='analogical')return tag('relacao',p.analogical,{tipo:'transferencia_entre_dominios'});
+  const direta=state.relationType==='direct';
+  return tag('relacao',direta?p.directRelation:p.reconstructedRelation,{tipo:direta?'direta':'reconstruida'});
+}
+
+function buildAuditBlock(state){
+  const p=i18n[state.lang].prompt;
+  const items=[p.auditItems.target];
+  if(state.counterpoints.length)items.push(p.auditItems.counter);
+  if(state.evidence.length)items.push(p.auditItems.evidence);
+  items.push(p.auditItems.status,p.auditItems.explain,p.auditItems.finish);
+  let corpo=items.map((item,i)=>tag('passo',item,{n:i+1})).join('\n');
+  if(state.auditRigidity==='rigida')corpo+='\n'+tag('rigidez',p.auditRigid);
+  return tag('modo',corpo,{nome:'auditoria',rigidez:state.auditRigidity});
+}
+
+function buildDevilBlock(state){
+  const p=i18n[state.lang].prompt;
+  const externo=state.counterpoints.length>0||state.evidence.length>0;
+  const corpo=[
+    p.devilIntro,
+    tag('inconsistencias_internas',p.devilInternal),
+    tag('selecao_e_omissoes',externo?p.devilSelectionExternal:p.devilSelectionInternal),
+    tag('suporte_insuficiente',p.devilSupport),
+    tag('melhor_contra_argumento',externo?p.devilCounterExternal:p.devilCounterInternal)
+  ].join('\n');
+  return tag('modo',corpo,{nome:'teste_adversarial'});
+}
+
+function buildDebateBlock(state){
+  const p=i18n[state.lang].prompt;
+  const passos=[p.debateSteps.side1,p.debateSteps.side2,p.debateSteps.reply,p.debateSteps.rejoinder];
+  if(state.evidence.length)passos.push(p.debateSteps.evidence);
+  passos.push(p.debateSteps.unresolved);
+  let corpo=[p.debateIntro,passos.map((s,i)=>tag(s.nome,s.texto,{n:i+1})).join('\n'),p.noConsensus].join('\n');
+  if(state.debateVerdict)corpo+='\n'+tag('veredito_provisorio',p.verdict);
+  return tag('modo',corpo,{nome:'debate_estruturado'});
+}
+
+function buildMatrixBlock(state){
+  const p=i18n[state.lang].prompt;
+  const pt=state.lang==='pt';
+  const colunas=[pt?'Afirmação':'Claim',pt?'Fonte-Alvo':'Target Source'];
+  if(state.counterpoints.length)colunas.push(pt?'Contraponto':'Counterpoint');
+  if(state.evidence.length)colunas.push(pt?'Evidência independente':'Independent evidence');
+  colunas.push('Status');
+  const corpo=[p.matrixIntro,tag('colunas',colunas.join(' | ')),p.matrixCell,p.matrixStatus].join('\n');
+  return tag('modo',corpo,{nome:'matriz_comparativa'});
+}
+
+function buildModeBlock(state){
+  if(state.category==='audit')return buildAuditBlock(state);
+  if(state.category==='devil')return buildDevilBlock(state);
+  if(state.category==='debate')return buildDebateBlock(state);
+  return buildMatrixBlock(state);
+}
+
+function buildFocusBlock(state){return tag('foco',esc(state.focus))}
+function buildRestrictionsBlock(state){return tag('restricoes',esc(state.restrictions))}
+function buildRigorBlock(state){return state.rigorOn?tag('rigor',i18n[state.lang].prompt.rigor):''}
+function buildPodcastBlock(state){return state.podcastOn?tag('podcast',i18n[state.lang].prompt.podcast):''}
+
+/* Mapa fixo de destino: o roteiro de podcast alimenta o Audio Overview,
+   que fica no painel Studio e não herda o system prompt. */
+function destinoDe(state){return state.podcastOn?'studio':'chat'}
+
+function buildPrompt(state=collectFormState()){
+  const corpo=[
+    buildScopeBlock(state),buildRolesBlock(state),buildRelationBlock(state),
+    buildModeBlock(state),buildFocusBlock(state),buildRestrictionsBlock(state),
+    buildRigorBlock(state),buildPodcastBlock(state)
+  ].filter(Boolean).join('\n\n');
+  return comGuardrails(tag(i18n[state.lang].prompt.raiz,corpo),destinoDe(state),{falada:state.podcastOn});
+}
+
+function renderTabs(){
+  const t=i18n[lang];
+  document.getElementById('tabs').innerHTML=Object.keys(t.categories).map(key=>{
+    const category=t.categories[key];
+    return `<div class="tab${activeCategory===key?' active':''}" onclick="selectCategory('${key}')">${category.icon} ${category.label}</div>`;
+  }).join('');
+  renderTabBody();
+}
+
+function renderTabBody(){
+  const t=i18n[lang];
+  const category=t.categories[activeCategory];
+  let html=`<div>${category.hint}</div>`;
+  if(category.hasRigidity){
+    html+=`<div class="sub-options"><div class="pill${auditRigidity==='branda'?' active':''}" onclick="setRigidity('branda')">${t.mild}</div><div class="pill${auditRigidity==='rigida'?' active':''}" onclick="setRigidity('rigida')">${t.rigid}</div></div>`;
+  }
+  if(category.hasVerdictToggle){
+    html+=`<div class="sub-options"><div class="pill${debateVerdict?' active':''}" onclick="toggleVerdict()">${t.verdictToggle}</div></div><div class="verdict-warning${debateVerdict?' show':''}" id="verdict-warning">${t.verdictWarning}</div>`;
+  }
+  document.getElementById('tab-body').innerHTML=html;
+}
+
+function renderRelationOptions(){
+  const t=i18n[lang];
+  const select=document.getElementById('relation-type');
+  select.innerHTML=Object.entries(t.relations).map(([value,item])=>`<option value="${value}">${item.label}</option>`).join('');
+  select.value=relationType;
+  document.getElementById('relation-help').textContent=t.relations[relationType].help;
+}
+
+function invalidateOutput(){
+  const output=document.getElementById('output-section');
+  output.style.display='none';
+  document.getElementById('prompt-output').textContent='';
+  document.getElementById('char-count').textContent='';
+}
+
+function clearValidation(){
+  ['in-alvo','in-contraponto','in-evidencia','in-contexto','relation-type'].forEach(id=>{
+    const element=document.getElementById(id);
+    element.classList.remove('invalid-field');
+    element.removeAttribute('aria-invalid');
+  });
+  ['error-alvo','error-contraponto','error-evidencia','error-contexto','error-relation'].forEach(id=>document.getElementById(id).textContent='');
+  const formError=document.getElementById('form-error');
+  formError.textContent='';
+  formError.classList.remove('show');
+}
+
+function errorElementId(fieldId){
+  return {'in-alvo':'error-alvo','in-contraponto':'error-contraponto','in-evidencia':'error-evidencia','in-contexto':'error-contexto','relation-type':'error-relation'}[fieldId];
+}
+
+function showValidation(result){
+  clearValidation();
+  const message=result.messages.join(' ');
+  const field=document.getElementById(result.fieldId);
+  if(field){
+    field.classList.add('invalid-field');
+    field.setAttribute('aria-invalid','true');
+    const errorId=errorElementId(result.fieldId);
+    if(errorId)document.getElementById(errorId).textContent=message;
+    field.focus();
+  }
+  const formError=document.getElementById('form-error');
+  formError.textContent=message;
+  formError.classList.add('show');
+}
+
+function handleFormInput(){clearValidation();invalidateOutput();updateBudget()}
+function selectCategory(key){activeCategory=key;renderTabs();clearValidation();invalidateOutput();updateBudget()}
+function setRigidity(value){auditRigidity=value;renderTabBody();invalidateOutput();updateBudget()}
+function toggleVerdict(){debateVerdict=!debateVerdict;renderTabBody();invalidateOutput();updateBudget()}
+function setRelationType(value){relationType=value;renderRelationOptions();clearValidation();invalidateOutput();updateBudget()}
+
+function toggleRigor(){rigorOn=!rigorOn;document.getElementById('switch-rigor').classList.toggle('on',rigorOn);invalidateOutput();updateBudget()}
+function togglePodcast(){
+  podcastOn=!podcastOn;
+  document.getElementById('switch-podcast').classList.toggle('on',podcastOn);
+  if(podcastOn&&!rigorOn){rigorOn=true;document.getElementById('switch-rigor').classList.add('on')}
+  invalidateOutput();updateBudget();
+}
+
+function updateBudget(){
+  const state=collectFormState();
+  const destino=destinoDe(state);
+  document.getElementById('budget-line').innerHTML=medidorHtml(buildPrompt(state).length,destino);
+}
+
+function generatePrompt(){
+  const state=collectFormState();
+  const validation=validateForm(state);
+  if(!validation.valid){invalidateOutput();showValidation(validation);return}
+  clearValidation();
+  const prompt=buildPrompt(state);
+  document.getElementById('prompt-output').textContent=prompt;
+  const count=document.getElementById('char-count');
+  count.innerHTML=medidorHtml(prompt.length,destinoDe(state));
+  const output=document.getElementById('output-section');
+  output.style.display='block';
+  output.scrollIntoView({behavior:'smooth',block:'nearest'});
+  updateBudget();
+}
+
+function copyPrompt(){
+  const state=collectFormState();
+  const validation=validateForm(state);
+  if(!validation.valid){invalidateOutput();showValidation(validation);return}
+  const prompt=buildPrompt(state);
+  document.getElementById('prompt-output').textContent=prompt;
+  navigator.clipboard.writeText(prompt).then(()=>{
+    const button=document.getElementById('btn-copy');
+    button.classList.add('copied');
+    document.getElementById('copy-text').textContent=i18n[lang].copied;
+    setTimeout(()=>{button.classList.remove('copied');document.getElementById('copy-text').textContent=i18n[lang].copy},2000);
+  }).catch(()=>{
+    const formError=document.getElementById('form-error');
+    formError.textContent=i18n[lang].copyFailed;
+    formError.classList.add('show');
+  });
+}
+
+function setLang(value){
+  lang=value;
+  document.getElementById('lang-en').classList.toggle('active',value==='en');
+  document.getElementById('lang-pt').classList.toggle('active',value==='pt');
+  clearValidation();invalidateOutput();applyStrings();
+}
+
+function applyStrings(){
+  const t=i18n[lang];
+  document.documentElement.lang=lang==='pt'?'pt-BR':'en';
+  document.title=t.pageTitle.replace(/^[^\p{L}]+/u,'').trim();
+  const values={
+    'case-no':t.caseNo,'page-title':t.pageTitle,'page-subtitle':t.pageSubtitle,'lbl-categoria':t.lblCategoria,
+    'lbl-exhibits':t.lblExhibits,'lbl-relation':t.lblRelation,'lbl-foco':t.lblFoco,'lbl-restricoes':t.lblRestricoes,
+    'lbl-modos':t.lblModos,'lbl-output':t.lblOutput,'tag-alvo':t.tagAlvo,'tag-contraponto':t.tagContraponto,
+    'tag-evidencia':t.tagEvidencia,'tag-contexto':t.tagContexto,'hint-alvo':t.hintAlvo,'hint-contraponto':t.hintContraponto,
+    'hint-evidencia':t.hintEvidencia,'hint-contexto':t.hintContexto,'hint-foco':t.hintFoco,'hint-restricoes':t.hintRestricoes,
+    'lbl-rigor':t.lblRigor,'desc-rigor':t.descRigor,'lbl-podcast':t.lblPodcast,'desc-podcast':t.descPodcast,
+    'btn-generate':t.btnGenerate,'copy-text':t.copy,'footer-note':t.footerNote
+  };
+  Object.entries(values).forEach(([id,value])=>document.getElementById(id).textContent=value);
+  document.getElementById('selection-notice').innerHTML=t.selectionNotice;
+  document.getElementById('foco').placeholder=t.focoPlaceholder;
+  document.getElementById('restricoes').placeholder=t.restricoesPlaceholder;
+  renderTabs();renderRelationOptions();updateBudget();
+}
+
+document.getElementById('switch-rigor').classList.add('on');
+applyStrings();
+    </script>
+<script>
+(function(){
+  const K='nblm.dossie';
+  const _sc=selectCategory,_sr=setRigidity,_srt=setRelationType,
+        _tr=toggleRigor,_tp=togglePodcast,_tv=toggleVerdict;
+  
+  // Sync nav lang buttons with tool's setLang
+  const _nlmLang = setLang;
+  window.setLang = function(l) {
+    _nlmLang(l);
+    document.getElementById('nlm-btn-pt')?.classList.toggle('nlm-lang-on', l==='pt');
+    document.getElementById('nlm-btn-en')?.classList.toggle('nlm-lang-on', l==='en');
+    localStorage.setItem('nblm.dossie.lang', l);
+  };
+  window.selectCategory=function(k){_sc(k);localStorage.setItem(K+'.cat',k);};
+  window.setRigidity=function(v){_sr(v);localStorage.setItem(K+'.rig',v);};
+  window.setRelationType=function(v){_srt(v);localStorage.setItem(K+'.rel',v);};
+  window.toggleRigor=function(){_tr();localStorage.setItem(K+'.rigorOn',rigorOn);};
+  window.togglePodcast=function(){_tp();localStorage.setItem(K+'.podcastOn',podcastOn);};
+  window.toggleVerdict=function(){_tv();localStorage.setItem(K+'.verdict',debateVerdict);};
+  ['in-alvo','in-contraponto','in-evidencia','in-contexto','foco','restricoes'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('input',e=>localStorage.setItem(K+'.'+id,e.target.value));
+  });
+  const sl=localStorage.getItem(K+'.lang'),sc=localStorage.getItem(K+'.cat'),
+        sr=localStorage.getItem(K+'.rig'),srel=localStorage.getItem(K+'.rel'),
+        sron=localStorage.getItem(K+'.rigorOn'),spon=localStorage.getItem(K+'.podcastOn'),
+        svd=localStorage.getItem(K+'.verdict');
+  if(sl&&sl!=='pt')setLang(sl);
+  if(sc&&sc!=='audit')selectCategory(sc);
+  if(sr&&sr!=='branda')setRigidity(sr);
+  if(srel&&srel!=='not_informed'){const sel=document.getElementById('relation-type');if(sel){sel.value=srel;setRelationType(srel);}}
+  if(sron==='false'&&rigorOn)toggleRigor();
+  if(spon==='true'&&!podcastOn)togglePodcast();
+  if(svd==='true'&&!debateVerdict)toggleVerdict();
+  ['in-alvo','in-contraponto','in-evidencia','in-contexto','foco','restricoes'].forEach(id=>{
+    const sv2=localStorage.getItem(K+'.'+id);const el=document.getElementById(id);
+    if(sv2&&el)el.value=sv2;
+  });
+})();
+</script>
+<script id="oficina-limpar">
+/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab e
+   studio. Apaga só o texto digitado nesta página (e sua cópia guardada no
+   navegador); seleções de modo, template e chaves ficam como estão.
+   Primeiro clique arma, segundo confirma; desarma sozinho em 3 s. */
+window.limparCampos=function(btn){
+  const ROTULO='Limpar campos';
+  if(!btn.dataset.armado){
+    btn.dataset.armado='1';btn.textContent='Confirmar limpeza';btn.classList.add('armado');
+    btn._t=setTimeout(()=>{delete btn.dataset.armado;btn.textContent=ROTULO;btn.classList.remove('armado');},3000);
+    return;
+  }
+  clearTimeout(btn._t);delete btn.dataset.armado;btn.classList.remove('armado');
+  document.querySelectorAll('textarea, input[type="text"]').forEach(el=>{
+    el.value='';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  btn.textContent='Campos limpos';
+  setTimeout(()=>{btn.textContent=ROTULO;},1500);
+};
+</script>
+</body>
+
+</html>

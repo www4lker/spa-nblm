@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oficina NLM</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --suite-ink: #17243a;
+  --suite-ink-2: #314158;
+  --suite-muted: #657186;
+  --suite-paper: #f6f3ec;
+  --suite-sheet: #fffdf8;
+  --suite-line: #d8d2c5;
+  --suite-accent: #245b78;
+  --suite-accent-soft: #e4eef1;
+  --suite-radius: 8px;
+  --suite-shadow: 0 10px 30px rgba(25, 36, 48, .07);
+}
+body {
+  background: var(--suite-paper); color: var(--suite-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: 0 1rem 3rem; line-height: 1.55; min-height: 100vh;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(23,36,58,.025) 1px, transparent 1px);
+  background-size: 100% 32px;
+}
+.nlm-nav { position: sticky; top: 0; z-index: 200; display: flex; align-items: center; padding: 0 16px; }
+.nlm-nav a { text-decoration: none; }
+
+.page { width: min(100%, 980px); margin: 0 auto; padding-top: 2rem; }
+.header { margin-bottom: 1.75rem; }
+.header h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.8rem, 4vw, 2.65rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.15; }
+.header p { color: var(--suite-muted); max-width: 720px; margin-top: .5rem; }
+.eyebrow { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--suite-accent); margin-bottom: .35rem; }
+
+.tool {
+  display: grid; grid-template-columns: 2.5rem 1fr auto; gap: 1rem; align-items: start;
+  background: var(--suite-sheet); border: 1px solid var(--suite-line); border-radius: var(--suite-radius);
+  box-shadow: var(--suite-shadow); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+  color: inherit; text-decoration: none; transition: border-color .15s;
+}
+.tool:hover { border-color: var(--suite-accent); }
+.tool:hover .arrow { color: var(--suite-accent); transform: translateX(3px); }
+.num { font-family: Georgia, serif; font-size: 1.4rem; color: var(--suite-muted); line-height: 1.2; }
+.tool-name { font-family: Georgia, "Times New Roman", serif; font-size: 1.3rem; font-weight: 600; letter-spacing: -.02em; }
+.dest { margin-top: .4rem; font-size: .82rem; color: var(--suite-ink-2); }
+.dest b { display: inline-block; font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--suite-accent); background: var(--suite-accent-soft); border-radius: 4px; padding: .15rem .45rem; margin-right: .4rem; }
+.dest i { font-style: normal; color: var(--suite-muted); }
+.tool-desc { margin-top: .6rem; font-size: .92rem; color: var(--suite-ink-2); max-width: 680px; }
+.steps { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .8rem; align-items: center; }
+.step { font-size: .75rem; border: 1px solid var(--suite-line); border-radius: 999px; padding: .2rem .65rem; color: var(--suite-ink-2); }
+.step-sep { font-size: .75rem; color: var(--suite-muted); }
+.arrow { font-size: 1.2rem; color: var(--suite-muted); transition: transform .15s, color .15s; }
+
+.connector { display: flex; gap: .6rem; align-items: center; margin: -.25rem 0 .75rem 3.5rem; font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--suite-muted); }
+.connector-arrow { color: var(--suite-accent); font-size: 1rem; }
+
+.foot { display: flex; gap: .75rem; align-items: center; margin-top: 2rem; font-size: .72rem; letter-spacing: .08em; color: var(--suite-muted); }
+.foot .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--suite-line); }
+
+@media (max-width: 600px) {
+  .tool { grid-template-columns: 1fr; gap: .4rem; padding: 1.1rem; }
+  .arrow { display: none; }
+  .connector { margin-left: 0; }
+}
+</style>
+<style id="oficina-unificado">
+/* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
+   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+.nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
+.nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
+.nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
+.nlm-nav .nlm-active{color:var(--suite-accent,#245b78)!important;border-bottom-color:var(--suite-accent,#245b78)!important;background:none!important;font-weight:600}
+.nlm-nav .nlm-home{font:600 15px/1 Georgia,'Times New Roman',serif!important;color:var(--suite-ink,#17243a)!important;border-right:1px solid var(--suite-line,#d8d2c5)!important;padding:6px 14px 6px 2px!important;margin-right:8px!important;letter-spacing:0!important}
+.nlm-nav .nlm-clear{margin-left:auto;background:none;border:1px solid transparent;border-radius:5px;padding:5px 10px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-muted,#657186);cursor:pointer;min-height:0}
+.nlm-nav .nlm-clear:hover{color:var(--suite-ink,#17243a);border-color:var(--suite-line,#d8d2c5)}
+.nlm-nav .nlm-clear.armado{color:var(--suite-danger,#a7443d);border-color:var(--suite-danger,#a7443d)}
+/* Laboratório */
+.template-btn,.template-btn.inter{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important;color:var(--suite-ink)!important}
+.template-btn.active,.template-btn.inter.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.section-label.interdisciplinar{color:var(--suite-ink-2)!important}
+.section-label::after,.section-label.interdisciplinar::after{background:var(--suite-line)!important}
+.template-btn .format-tag{background:transparent!important;color:var(--suite-accent)!important;border-color:var(--suite-line)!important}
+.container{margin-top:1.5rem!important}
+.toggle-row{background:var(--suite-sheet)!important}
+.char-count{background:transparent!important;padding-left:0!important;color:var(--suite-muted)!important}
+.medidor:not(.excesso) .barra i{background:var(--suite-accent)!important}
+.toggle-row.on{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.toggle-switch.on{background:var(--suite-accent)!important}
+.generate-btn{box-shadow:none!important}
+/* Studio */
+.mode-card{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important}
+.mode-card.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+/* Dossiê: rótulos e botões em sans; só o prompt gerado fica monoespaçado */
+.wrap{--mono:Inter,ui-sans-serif,system-ui,sans-serif}
+/* Suite: um só acento, sem faixa colorida por cartão */
+.card.sp,.card.na,.card.rf{--accent:var(--suite-accent)!important;--tint:var(--suite-accent-soft)!important;border-left:1px solid var(--suite-line)!important}
+.card .icon{--tint:var(--suite-accent-soft)!important}
+.suite{margin-top:1.5rem!important}
+.chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
+.hint{color:var(--suite-ink-2)!important}
+</style>
+</head>
+<body>
+
+<nav class="nlm-nav"><a class="nlm-home nlm-active" href="index.html">Oficina</a><a href="suite.html">Suite</a><a href="dossie.html">Dossiê</a><a href="lab.html">Lab</a><a href="studio.html">Studio</a></nav>
+
+<div class="page">
+
+  <header class="header">
+    <div class="eyebrow">NBLM Workshop</div>
+    <h1>Oficina NLM</h1>
+    <p>Instrumentos acadêmicos para o NotebookLM. Configure o notebook na Suite, confronte fontes no Dossiê, aprofunde no Laboratório e gere os artefatos do painel Studio no Prompt Studio. Cada prompt indica o campo onde deve ser colado.</p>
+  </header>
+
+  <main>
+    <a class="tool" href="suite.html">
+      <span class="num">01</span>
+      <div>
+        <div class="tool-name">Suite de Corpus</div>
+        <div class="dest"><b>Custom Instructions + chat</b> <i>system prompt em Custom Instructions; auditoria e refinamento no chat</i></div>
+        <div class="tool-desc">Prepara o terreno antes de qualquer consulta. Configura o comportamento do NLM, audita e mapeia as fontes, gera prompts de refinamento com base no diagnóstico — e testa candidatos para o Dossiê.</div>
+        <div class="steps">
+          <span class="step">System Prompt</span>
+          <span class="step-sep">→</span>
+          <span class="step">Notebook Analyser</span>
+          <span class="step-sep">→</span>
+          <span class="step">Refinamento</span>
+          <span class="step-sep">→</span>
+          <span class="step">Auditar candidato</span>
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <div class="connector">
+      <span class="connector-arrow">↓</span>
+      <span>CANDIDATOS APROVADOS NA SUITE ALIMENTAM O DOSSIÊ</span>
+    </div>
+
+    <a class="tool" href="dossie.html">
+      <span class="num">02</span>
+      <div>
+        <div class="tool-name">Dossiê de Confronto</div>
+        <div class="dest"><b>Chat principal</b> <i>4.000 caracteres — herda o system prompt</i></div>
+        <div class="tool-desc">Confronto assimétrico estruturado entre fontes. Recebe candidatos da Suite ou opera de forma independente. Gera prompts de auditoria, debate e comparação com guardrails rigorosos.</div>
+        <div class="steps">
+          <span class="step">Auditoria</span>
+          <span class="step-sep">·</span>
+          <span class="step">Devil's advocate</span>
+          <span class="step-sep">·</span>
+          <span class="step">Debate</span>
+          <span class="step-sep">·</span>
+          <span class="step">Matriz comparativa</span>
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="tool" href="lab.html">
+      <span class="num">03</span>
+      <div>
+        <div class="tool-name">Laboratório Acadêmico</div>
+        <div class="dest"><b>Chat principal</b> <i>4.000 caracteres; Roteiro Podcast vai para o painel Studio</i></div>
+        <div class="tool-desc">Análises profundas e sínteses interdisciplinares configuráveis. Templates especializados por tipo de análise — de cartografia conceitual a síntese multifonte com guardrails.</div>
+        <div class="steps">
+          <span class="step">Cartografia</span>
+          <span class="step-sep">·</span>
+          <span class="step">Tensão</span>
+          <span class="step-sep">·</span>
+          <span class="step">Síntese</span>
+          <span class="step-sep">·</span>
+          <span class="step">Dialética</span>
+          <span class="step-sep">·</span>
+          <span class="step">Pontes</span>
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="tool" href="studio.html">
+      <span class="num">04</span>
+      <div>
+        <div class="tool-name">Prompt Studio</div>
+        <div class="dest"><b>Painel Studio</b> <i>5.000 caracteres — não herda o system prompt, guardrails vão no prompt</i></div>
+        <div class="tool-desc">Formatos acadêmicos recorrentes com guardrails epistêmicos embutidos. Briefings, guias de estudo, ensaios — prontos para copiar e colar no NLM.</div>
+        <div class="steps">
+          <span class="step">Briefing</span>
+          <span class="step-sep">·</span>
+          <span class="step">Guia de estudo</span>
+          <span class="step-sep">·</span>
+          <span class="step">Ensaio</span>
+          <span class="step-sep">·</span>
+          <span class="step">Guardrails ativos</span>
+        </div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+  </main>
+
+  <footer class="foot">
+    <span>USO PESSOAL</span>
+    <span class="dot"></span>
+    <span>MELHORES RESPOSTAS · MELHORES ÁUDIOS</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

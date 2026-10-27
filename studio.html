@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotebookLM Prompt Studio</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --surface2: #1e1e3a;
+            --border: #2a2a4a;
+            --border-hi: #3b2d6b;
+            --text: #e0e0e0;
+            --text-muted: #a0a0b8;
+            --text-dim: #6b6b8a;
+            --text-label: #c8c8d8;
+            --accent: #7c3aed;
+            --accent-dark: #6d28d9;
+            --accent-soft: rgba(124, 58, 237, .15);
+            --accent-glow: rgba(124, 58, 237, .4);
+            --inter: #a78bfa;
+            --inter-bg: #1e1845;
+            --inter-border: #3b2d6b;
+            --green: #059669;
+            --green-soft: rgba(5, 150, 105, .15);
+            --green-border: rgba(5, 150, 105, .4);
+            --amber: #f59e0b;
+            --warning: #f87171;
+            --output-bg: #121228;
+            --shadow1: 0 1px 3px rgba(0, 0, 0, .4), 0 2px 6px 1px rgba(0, 0, 0, .25);
+            --shadow2: 0 2px 6px rgba(0, 0, 0, .4), 0 6px 16px 4px rgba(124, 58, 237, .1);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f4f4f8;
+                --surface: #ffffff;
+                --surface2: #f0f0f6;
+                --border: #d4d4e8;
+                --border-hi: #c4b5fd;
+                --text: #1a1a2e;
+                --text-muted: #5a5a7a;
+                --text-dim: #9090b0;
+                --text-label: #3a3a5a;
+                --accent: #7c3aed;
+                --accent-dark: #6d28d9;
+                --accent-soft: rgba(124, 58, 237, .1);
+                --accent-glow: rgba(124, 58, 237, .35);
+                --inter: #6d28d9;
+                --inter-bg: #f3f0ff;
+                --inter-border: #c4b5fd;
+                --green: #059669;
+                --green-soft: rgba(5, 150, 105, .08);
+                --green-border: rgba(5, 150, 105, .35);
+                --amber: #d97706;
+                --warning: #dc2626;
+                --output-bg: #f8f8fc;
+                --shadow1: 0 1px 3px rgba(0, 0, 0, .08), 0 2px 6px 1px rgba(0, 0, 0, .05);
+                --shadow2: 0 2px 6px rgba(0, 0, 0, .08), 0 6px 16px 4px rgba(124, 58, 237, .08);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            padding: 2rem 1rem;
+            transition: background .2s, color .2s;
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        /* ── HEADER ─────────────────────────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .lang-switcher {
+            display: inline-flex;
+            gap: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }
+
+        .lang-btn {
+            background: var(--surface2);
+            border: none;
+            padding: .4rem .9rem;
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-family: inherit;
+            transition: all .18s;
+            letter-spacing: .3px;
+        }
+
+        .lang-btn:first-child {
+            border-right: 1px solid var(--border);
+        }
+
+        .lang-btn.active {
+            background: var(--inter-bg);
+            color: var(--inter);
+            border-color: var(--inter-border);
+        }
+
+        .lang-btn:hover:not(.active) {
+            filter: brightness(1.1);
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-bottom: .4rem;
+            letter-spacing: -.5px;
+        }
+
+        .header p {
+            font-size: .93rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* ── GUARDRAIL BADGE ────────────────────────────── */
+        .guardrail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .45rem 1rem;
+            border-radius: 20px;
+            background: var(--green-soft);
+            border: 1px solid var(--green-border);
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: .3px;
+        }
+
+        .guardrail-badge .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .4;
+            }
+        }
+
+        /* ── CARD ───────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow1);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            transition: box-shadow .2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow2);
+        }
+
+        /* ── MODE CARDS ─────────────────────────────────── */
+        .modes {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: .5rem;
+        }
+
+        .mode-card {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1rem;
+            cursor: pointer;
+            transition: all .22s;
+            text-align: left;
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(124, 58, 237, .12), transparent 70%);
+            opacity: 0;
+            transition: opacity .22s;
+        }
+
+        .mode-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(124, 58, 237, .15);
+        }
+
+        .mode-card:hover::after {
+            opacity: 1;
+        }
+
+        .mode-card.active {
+            background: linear-gradient(135deg, #2d1b69 0%, #1e1145 100%);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent), 0 4px 20px rgba(124, 58, 237, .2);
+        }
+
+        .mode-card.active::after {
+            opacity: 1;
+        }
+
+        .mode-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+
+        .mode-name {
+            font-size: .88rem;
+            font-weight: 600;
+            color: var(--text-label);
+            line-height: 1.3;
+        }
+
+        .mode-card.active .mode-name {
+            color: var(--inter);
+        }
+
+        .mode-desc {
+            font-size: .75rem;
+            color: var(--text-dim);
+            line-height: 1.55;
+        }
+
+        .mode-card.active .mode-desc {
+            color: rgba(167, 139, 250, .7);
+        }
+
+        .mode-check {
+            position: absolute;
+            top: .65rem;
+            right: .65rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .mode-card.active .mode-check {
+            display: flex;
+        }
+
+        /* ── FOCUS AREA ─────────────────────────────────── */
+        .input-section {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: .45rem;
+            font-weight: 500;
+            color: var(--text-label);
+            font-size: .88rem;
+        }
+
+        label .sublabel {
+            color: var(--text-dim);
+            font-weight: 400;
+            font-size: .8rem;
+            margin-left: .4rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: .7rem .85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: .9rem;
+            font-family: inherit;
+            background: var(--surface2);
+            color: var(--text);
+            resize: vertical;
+            min-height: 72px;
+            transition: border-color .2s, box-shadow .2s;
+            line-height: 1.55;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* ── GUARDRAIL DETAIL ────────────────────────────── */
+        .guardrail-detail {
+            margin-bottom: 1.25rem;
+        }
+
+        .guardrail-detail-toggle {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .78rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: inherit;
+            padding: .3rem 0;
+            transition: color .18s;
+        }
+
+        .guardrail-detail-toggle:hover {
+            color: var(--inter);
+        }
+
+        .guardrail-detail-toggle .arrow {
+            transition: transform .2s;
+            font-size: .65rem;
+        }
+
+        .guardrail-detail-toggle.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .guardrail-detail-body {
+            display: none;
+            margin-top: .6rem;
+            padding: .75rem 1rem;
+            background: var(--inter-bg);
+            border: 1px solid var(--inter-border);
+            border-radius: 8px;
+            font-size: .78rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .guardrail-detail-body.open {
+            display: block;
+        }
+
+        .guardrail-detail-body ul {
+            padding-left: 1rem;
+        }
+
+        .guardrail-detail-body li {
+            margin-bottom: .3rem;
+        }
+
+        .guardrail-detail-body strong {
+            color: var(--inter);
+        }
+
+        /* ── GENERATE BUTTON ────────────────────────────── */
+        .generate-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: .875rem 2rem;
+            border-radius: 8px;
+            font-size: .98rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            width: 100%;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, .3);
+            font-family: inherit;
+        }
+
+        .generate-btn:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .generate-btn:active {
+            transform: scale(.99);
+        }
+
+        .generate-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        /* ── OUTPUT ─────────────────────────────────────── */
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .output-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .output-box {
+            background: var(--output-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem;
+            font-family: 'Roboto Mono', 'Consolas', 'Monaco', monospace;
+            font-size: .8rem;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            max-height: 480px;
+            overflow-y: auto;
+            color: #c8c8d8;
+        }
+
+        .output-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: .75rem;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+
+        .char-count {
+            font-size: .78rem;
+            color: var(--text-dim);
+            padding: .4rem .7rem;
+            background: var(--surface2);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .copy-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: .55rem 1.1rem;
+            border-radius: 6px;
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-dark);
+        }
+
+        .copy-btn.copied {
+            background: var(--green);
+        }
+
+        .warning {
+            color: var(--warning);
+            font-weight: 500;
+        }
+
+        /* ── FOOTER NOTE ────────────────────────────────── */
+        .footnote {
+            font-size: .72rem;
+            color: var(--text-dim);
+            text-align: center;
+            margin-top: 1.5rem;
+            line-height: 1.6;
+            padding: 0 1rem;
+        }
+
+        .footnote a {
+            color: var(--text-dim);
+            text-decoration: underline;
+        }
+
+        @media(max-width:600px) {
+            .modes {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    
+.nlm-nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;padding:0 16px;height:40px;background:#080812;border-bottom:1px solid #1a1a30;font:500 11px/1 ui-monospace,monospace;gap:0;flex-shrink:0}
+.nlm-nav a{color:#44445e;text-decoration:none;padding:5px 9px;border-radius:3px;transition:color .12s,background .12s}
+.nlm-nav a:hover{color:#9090c0;background:#14142a}
+.nlm-nav .nlm-active{color:#a78bfa!important;background:#1a143a!important}
+.nlm-nav .nlm-home{color:#33334a;padding:5px 12px 5px 2px;margin-right:10px;border-right:1px solid #1a1a30;letter-spacing:.05em}
+.nlm-nav .nlm-home:hover{color:#6060a0;background:none!important}
+.nlm-nav .nlm-lang{margin-left:auto;display:flex;gap:2px;padding-left:10px;border-left:1px solid #1a1a30}
+.nlm-lang-btn{background:none;border:1px solid transparent;color:#44445e;font:500 10px/1 ui-monospace,monospace;padding:4px 7px;border-radius:3px;cursor:pointer;letter-spacing:.06em;transition:color .12s}
+.nlm-lang-btn:hover{color:#9090c0}
+.nlm-lang-btn.nlm-lang-on{color:#c8b060!important;border-color:#2a2418!important}
+
+/* Seletor PT/EN escondido: as tags XML e o system prompt canônico são
+   em português, e a Suite não tem versão EN — um usuário em inglês
+   receberia prompts EN sem system prompt correspondente. As strings
+   i18n.en seguem no código, intactas; só o acesso está fechado. */
+.nlm-nav .nlm-lang{display:none!important}
+
+.medidor{display:inline-flex;align-items:center;gap:9px;vertical-align:middle}
+.medidor .destino{font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.medidor .barra{position:relative;width:110px;height:3px;border-radius:2px;background:rgba(128,128,128,.28);overflow:hidden}
+.medidor .barra i{position:absolute;top:0;bottom:0;left:0;background:currentColor}
+.medidor .numero{font-variant-numeric:tabular-nums;white-space:nowrap}
+.medidor.excesso{color:#b91c1c;font-weight:600}
+</style>
+    <style>:root {
+  --suite-ink: #17243a;
+  --suite-ink-2: #314158;
+  --suite-muted: #657186;
+  --suite-paper: #f6f3ec;
+  --suite-sheet: #fffdf8;
+  --suite-line: #d8d2c5;
+  --suite-accent: #245b78;
+  --suite-accent-soft: #e4eef1;
+  --suite-success: #31715b;
+  --suite-danger: #a7443d;
+  --suite-radius: 8px;
+  --suite-shadow: 0 10px 30px rgba(25, 36, 48, .07);
+}
+
+html { color-scheme: light; scroll-behavior: smooth; }
+body {
+  background: var(--suite-paper) !important;
+  color: var(--suite-ink) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif !important;
+  padding: 0 1rem 3rem !important;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(23,36,58,.025) 1px, transparent 1px);
+  background-size: 100% 32px;
+}
+
+.suite-shell { max-width: 1180px; margin: 0 auto 2.5rem; }
+.suite-nav {
+  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  border-bottom: 1px solid var(--suite-line); color: var(--suite-ink);
+}
+.suite-brand { display: flex; align-items: center; gap: .75rem; color: inherit; text-decoration: none; }
+.suite-brand-mark {
+  width: 32px; height: 36px; display: grid; place-items: center; border: 1px solid var(--suite-ink);
+  border-radius: 2px 7px 7px 2px; font-family: Georgia, serif; font-weight: 700; font-size: .82rem;
+  box-shadow: inset 4px 0 0 var(--suite-accent-soft);
+}
+.suite-brand strong { display: block; font-family: Georgia, "Times New Roman", serif; font-size: 1rem; }
+.suite-brand small { display: block; margin-top: 2px; color: var(--suite-muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.suite-links { display: flex; align-items: center; gap: .25rem; }
+.suite-links a, .suite-menu summary {
+  color: var(--suite-ink-2); text-decoration: none; padding: .55rem .7rem; border-radius: 5px;
+  font-size: .78rem; font-weight: 650; cursor: pointer; list-style: none;
+}
+.suite-links a:hover, .suite-links a:focus-visible, .suite-menu summary:hover { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu { position: relative; }
+.suite-menu summary::-webkit-details-marker { display: none; }
+.suite-menu[open] summary { background: var(--suite-accent-soft); color: var(--suite-accent); }
+.suite-menu-panel {
+  position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; min-width: 240px; padding: .45rem;
+  background: var(--suite-sheet); border: 1px solid var(--suite-line); border-radius: var(--suite-radius); box-shadow: var(--suite-shadow);
+}
+.suite-menu-panel a { display: block; }
+.suite-context { display: flex; align-items: center; gap: .65rem; margin-top: 1rem; color: var(--suite-muted); font-size: .75rem; }
+.suite-context span { color: var(--suite-accent); font-weight: 750; text-transform: uppercase; letter-spacing: .07em; }
+
+/* Shared form grammar; original selectors, IDs and behavior remain untouched. */
+.container, .wrap, .suite { width: min(100%, 980px) !important; max-width: 980px !important; margin-left: auto !important; margin-right: auto !important; }
+.header, .wrap > header, .page-header { text-align: left !important; margin-bottom: 1.75rem !important; padding: 0 !important; border: 0 !important; }
+.header h1, .wrap > header h1, .page-header h1 {
+  color: var(--suite-ink) !important; font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.8rem, 4vw, 2.65rem) !important; font-weight: 600 !important; letter-spacing: -.035em !important;
+}
+.header p, .subtitle, .page-header p { color: var(--suite-muted) !important; max-width: 720px; line-height: 1.6 !important; }
+.card, .wrap > section, #output-section {
+  background: var(--suite-sheet) !important; color: var(--suite-ink) !important; border: 1px solid var(--suite-line) !important;
+  border-radius: var(--suite-radius) !important; box-shadow: var(--suite-shadow) !important;
+}
+.card { margin-bottom: 1rem; }
+.wrap > section, #output-section { padding: 1.5rem !important; margin-bottom: 1rem !important; }
+label, .section-label, .exhibit-tag { color: var(--suite-ink-2) !important; letter-spacing: .045em; }
+input, textarea, select {
+  background: #fff !important; color: var(--suite-ink) !important; border: 1px solid #bfc5ca !important;
+  border-radius: 6px !important; min-height: 44px; font: inherit !important;
+}
+input:hover, textarea:hover, select:hover { border-color: #82909a !important; }
+input:focus, textarea:focus, select:focus { border-color: var(--suite-accent) !important; box-shadow: 0 0 0 3px rgba(36,91,120,.16) !important; outline: none !important; }
+button, [role="button"], .tab, .pill, .template-btn { min-height: 40px; }
+button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:focus-visible { outline: 3px solid rgba(36,91,120,.28) !important; outline-offset: 2px; }
+.generate-btn, button.generate, .btn-copy {
+  background: var(--suite-accent) !important; color: white !important; border-color: var(--suite-accent) !important;
+  border-radius: 6px !important; box-shadow: none !important;
+}
+.generate-btn:hover, button.generate:hover, .btn-copy:hover { background: #194862 !important; transform: translateY(-1px); }
+.generate-btn:disabled { background: #929ba3 !important; border-color: #929ba3 !important; cursor: not-allowed; }
+.copy-btn, button.copy, .btn-expand, .lang-btn { border-radius: 5px !important; }
+.output-box, #prompt-output, .ptext {
+  background: #f4f1e9 !important; color: #26364a !important; border-color: var(--suite-line) !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important; line-height: 1.7 !important;
+}
+.mode-card, .template-btn, .tab, .toggle-row, .guardrail-detail { border-radius: 6px !important; box-shadow: none !important; }
+.mode-card:hover, .template-btn:hover, .tab:hover { transform: none !important; border-color: var(--suite-accent) !important; }
+.mode-card.active, .template-btn.active, .tab.active { border-color: var(--suite-accent) !important; background: var(--suite-accent-soft) !important; color: var(--suite-ink) !important; }
+.guardrail-badge { border-radius: 4px !important; }
+.lang-switcher, .lang-switch { float: right; }
+.case-no, .eyebrow { color: var(--suite-accent) !important; }
+.suite .card { border-left: 4px solid var(--accent) !important; overflow: hidden; }
+.suite .card-header { padding: 1.25rem 1.35rem; }
+.suite .ptext { border: 0 !important; }
+.suite .fade-out { background: linear-gradient(to bottom, rgba(255,253,248,0), var(--suite-sheet)) !important; }
+
+@media (max-width: 700px) {
+  body { padding-inline: .75rem !important; }
+  .suite-nav { min-height: 58px; }
+  .suite-brand small, .suite-links > a:not(:first-child) { display: none; }
+  .suite-menu-panel { position: fixed; top: 62px; left: .75rem; right: .75rem; }
+  .suite-context { align-items: flex-start; }
+  .card, .wrap > section, #output-section { padding: 1rem !important; }
+  .suite .card { padding: 0 !important; }
+  .card-header { align-items: flex-start !important; flex-wrap: wrap; }
+  .card-header .btn-copy { width: 100%; justify-content: center; }
+  .exhibits { grid-template-columns: 1fr !important; }
+  .output-meta, .output-bar { gap: .75rem; flex-wrap: wrap; }
+  button, .generate-btn, button.generate { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+</style>
+    <script>document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[onclick]:not(button):not(a)').forEach((el) => {
+    if (!el.hasAttribute('tabindex')) el.tabIndex = 0;
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        el.click();
+      }
+    });
+  });
+  document.querySelectorAll('.suite-menu-panel a').forEach((link) => {
+    if (link.href === location.href) link.setAttribute('aria-current', 'page');
+  });
+});
+</script>
+<style id="oficina-unificado">
+/* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
+   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+.nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
+.nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
+.nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
+.nlm-nav .nlm-active{color:var(--suite-accent,#245b78)!important;border-bottom-color:var(--suite-accent,#245b78)!important;background:none!important;font-weight:600}
+.nlm-nav .nlm-home{font:600 15px/1 Georgia,'Times New Roman',serif!important;color:var(--suite-ink,#17243a)!important;border-right:1px solid var(--suite-line,#d8d2c5)!important;padding:6px 14px 6px 2px!important;margin-right:8px!important;letter-spacing:0!important}
+.nlm-nav .nlm-clear{margin-left:auto;background:none;border:1px solid transparent;border-radius:5px;padding:5px 10px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-muted,#657186);cursor:pointer;min-height:0}
+.nlm-nav .nlm-clear:hover{color:var(--suite-ink,#17243a);border-color:var(--suite-line,#d8d2c5)}
+.nlm-nav .nlm-clear.armado{color:var(--suite-danger,#a7443d);border-color:var(--suite-danger,#a7443d)}
+/* Laboratório */
+.template-btn,.template-btn.inter{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important;color:var(--suite-ink)!important}
+.template-btn.active,.template-btn.inter.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.section-label.interdisciplinar{color:var(--suite-ink-2)!important}
+.section-label::after,.section-label.interdisciplinar::after{background:var(--suite-line)!important}
+.template-btn .format-tag{background:transparent!important;color:var(--suite-accent)!important;border-color:var(--suite-line)!important}
+.container{margin-top:1.5rem!important}
+.toggle-row{background:var(--suite-sheet)!important}
+.char-count{background:transparent!important;padding-left:0!important;color:var(--suite-muted)!important}
+.medidor:not(.excesso) .barra i{background:var(--suite-accent)!important}
+.toggle-row.on{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+.toggle-switch.on{background:var(--suite-accent)!important}
+.generate-btn{box-shadow:none!important}
+/* Studio */
+.mode-card{background:var(--suite-sheet)!important;border-color:var(--suite-line)!important}
+.mode-card.active{background:var(--suite-accent-soft)!important;border-color:var(--suite-accent)!important}
+/* Dossiê: rótulos e botões em sans; só o prompt gerado fica monoespaçado */
+.wrap{--mono:Inter,ui-sans-serif,system-ui,sans-serif}
+/* Suite: um só acento, sem faixa colorida por cartão */
+.card.sp,.card.na,.card.rf{--accent:var(--suite-accent)!important;--tint:var(--suite-accent-soft)!important;border-left:1px solid var(--suite-line)!important}
+.card .icon{--tint:var(--suite-accent-soft)!important}
+.suite{margin-top:1.5rem!important}
+.chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
+.hint{color:var(--suite-ink-2)!important}
+</style>
+</head>
+
+<body>
+<nav class="nlm-nav"><a class="nlm-home" href="index.html">Oficina ↗</a><a href="suite.html">Suite</a><a href="dossie.html">Dossiê</a><a href="lab.html">Lab</a><a href="studio.html" class="nlm-active">Studio</a><div class="nlm-lang"><button class="nlm-lang-btn nlm-lang-on" id="nlm-btn-pt" onclick="setLang('pt')">PT</button><button class="nlm-lang-btn" id="nlm-btn-en" onclick="setLang('en')">EN</button></div><button class="nlm-clear" type="button" onclick="limparCampos(this)" title="Apaga o texto digitado nesta página">Limpar campos</button></nav>
+<style>.lang-switch,.lang-btn-group,#btnEN,#btnPT{display:none!important}</style>
+
+    
+    <div class="container">
+
+        <div class="header">
+            <div>
+                <button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" id="btnPT" onclick="setLang('pt')">PT</button>
+            </div>
+            <h1 id="h-title">NotebookLM Prompt Studio</h1>
+            <p id="h-sub">Focused prompts for NotebookLM — epistemic guardrails always active</p>
+            <div class="guardrail-badge">
+                <span class="dot"></span>
+                <span id="h-badge">Epistemic guardrails embedded in all modes</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- Mode Selection -->
+            <div class="input-section">
+                <label id="lbl-mode">Choose a mode:</label>
+                <div class="modes" id="modeGrid"></div>
+            </div>
+
+            <!-- Custom Focus -->
+            <div class="input-section">
+                <label for="customFocus">
+                    <span id="lbl-focus">Specific focus</span>
+                    <span class="sublabel" id="lbl-focus-sub">(optional — add context, angle or constraint)</span>
+                </label>
+                <textarea id="customFocus" rows="3"
+                    placeholder="E.g.: what connects to your research project; a specific term or debate you want prioritised; the disciplinary context of the sources…"></textarea>
+            </div>
+
+            <!-- Guardrail detail (expandable) -->
+            <div class="guardrail-detail">
+                <button class="guardrail-detail-toggle" id="grToggle" onclick="toggleGrDetail()">
+                    <span class="dot"
+                        style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;"></span>
+                    <span id="gr-toggle-label">See active guardrails</span>
+                    <span class="arrow">▾</span>
+                </button>
+                <div class="guardrail-detail-body" id="grBody">
+                    <ul id="gr-list"></ul>
+                </div>
+            </div>
+
+            <button class="generate-btn" onclick="generate()" id="btn-gen" disabled>
+                <span id="btn-gen-text">🚀 Select a mode to generate</span>
+            </button>
+        </div>
+
+        <div class="card" id="outputCard" style="display:none;">
+            <div class="output-header">
+                <h3 id="lbl-output">Generated Prompt</h3>
+            </div>
+            <div class="output-box" id="outputBox"></div>
+            <div class="output-meta">
+                <span class="char-count" id="charCount"></span>
+                <button class="copy-btn" onclick="doCopy()">
+                    <span id="copyIcon">📋</span>
+                    <span id="copyText">Copy</span>
+                </button>
+            </div>
+        </div>
+
+        <p class="footnote" id="footnote">
+            Guardrails based on findings from Roig (2026) and Kalai et al. (2025).<br>
+            Grounding ≠ fabrication resistance. Mark inferences. Preserve divergences. Never fabricate bibliographic
+            details.
+        </p>
+
+    </div>
+
+    <script>
+/* ── Destino do prompt e guardrails ───────────────────────────────────
+   Origem canônica dos guardrails: suite.html, const SP.
+   O painel Studio do NotebookLM não herda o campo Custom Instructions e
+   roda outro modelo, mais rápido e de qualidade inferior. Prompts com
+   destino "studio" carregam os guardrails inline; prompts com destino
+   "chat" os herdam do system prompt e não devem repeti-los.
+   Cópia replicada em dossie.html, lab.html e studio.html: as páginas são
+   standalone, sem build. Ao editar uma, edite as três. */
+const CITACAO_ESCRITA=`<citacao>Abra com a seção Fontes: uma linha por fonte usada, ETIQUETA — nome-arquivo.ext, cap. X(.Y). A etiqueta é o sobrenome do autor em maiúsculas, ou palavras do título quando não houver autor, e não muda. No corpo, cada afirmação leva ETIQUETA [n] na mesma frase, sem repetir arquivo nem capítulo. Nunca remova o [n]: é ele que gera o link clicável. Em trecho contínuo da mesma fonte, cite só na primeira frase.</citacao>`;
+
+/* Em áudio não há índice clicável nem seção a consultar: a atribuição precisa
+   caber na fala, ou o apresentador lê "colchete um" em voz alta. */
+const CITACAO_FALADA=`<citacao>Nomeie a fonte em voz alta quando a procedência mudar: "no livro de Setiya", "no relatório sobre o fígado". Não leia nome de arquivo, capítulo nem índice numérico: em áudio viram ruído.</citacao>`;
+
+function guardrails(falada){return `<guardrails>
+${falada?CITACAO_FALADA:CITACAO_ESCRITA}
+
+<inferencia>Apresente a posição de cada fonte separadamente antes de qualquer síntese. Toda conexão que você constrói entre elas é marcada como sua: "Infiro X juntando A e B; nenhuma fonte afirma isso diretamente."${falada?'':' Vale sobretudo em tabelas, onde a inferência se disfarça de dado.'}</inferencia>
+
+<divergencia>Preserve o conflito entre fontes. Ele é o achado, não um problema a resolver.</divergencia>
+
+<lacuna>"As fontes não abordam este ponto" é resposta válida. Não preencha silêncio com suposição, nem trate ausência como falsidade.</lacuna>
+
+<incerteza>Quantifique evidência fraca em vez de suavizá-la. Sem "provavelmente", sem "é razoável supor".</incerteza>${falada?'':`
+
+<bibliografia>Não fabrique DOI, página, editora, cidade, ano ou ISBN ausente da fonte. Campo ausente é marcado como ausente.</bibliografia>`}
+</guardrails>`;}
+
+/* Fidelidade: a ressalva que a fonte não traz é uma distorção dela. Vale
+   sempre, como o <estilo>, e não responde à chave de guardrails. A cláusula
+   final evita que ela anule os templates que pedem crítica. Mesma regra no
+   SP da suite.html, para os prompts que vão ao chat. */
+const FIDELIDADE=`<fidelidade>
+Reconstrua o argumento de cada fonte com a força que o autor lhe deu, até as conclusões dele e no tom dele.
+Não acrescente ressalva, "outro lado" nem aviso de controvérsia que a fonte não traga: equilibrá-la com o que ela não diz é distorcê-la.
+Crítica, quando pedida, vem depois da reconstrução, marcada como sua.
+</fidelidade>`;
+
+const ESTILO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Cada parágrafo cumpre uma função: atribuir, comparar, contestar, demonstrar ou declarar um limite.
+Corte dramatização, título grandioso, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+Elimine toda frase cuja retirada não altere a informação, a evidência ou o raciocínio.
+</estilo>`;
+
+/* Em áudio não há parágrafo nem título: as regras de economia do texto
+   escrito saem, e ficam as que valem para a fala. */
+const ESTILO_FALADO=`<estilo>
+Clareza jornalística: frases diretas, palavras comuns, verbos concretos.
+Corte dramatização, jargão dispensável, antítese de efeito e conclusão de impacto.
+Analogia, metáfora e comparação só entram quando estão na própria fonte, atribuídas a ela. Não invente imagem didática: nada de raio X, iceberg, quebra-cabeça ou receita de bolo.
+</estilo>`;
+
+const TETOS={custom:10000,chat:4000,studio:5000};
+const DESTINO_ROTULO={custom:'Custom Instructions',chat:'Chat principal',studio:'Painel Studio'};
+
+/* Medidor de destino e consumo do teto. Devolve HTML para um único elemento,
+   para não exigir marcação nova em cada página. */
+function medidorHtml(n,destino){
+  const teto=TETOS[destino],pct=Math.min(100,Math.round(n/teto*100));
+  return `<span class="medidor${n>teto?' excesso':''}">`
+    +`<span class="destino">${DESTINO_ROTULO[destino]}</span>`
+    +`<span class="barra"><i style="width:${pct}%"></i></span>`
+    +`<span class="numero">${n.toLocaleString('pt-BR')} / ${teto.toLocaleString('pt-BR')}</span>`
+    +`</span>`;
+}
+
+/* <fidelidade> e <estilo> acompanham sempre o destino Studio: o estilo barra
+   a analogia inventada, a fidelidade barra a ressalva inventada, e desligar
+   guardrails para ganhar espaço não deve devolvê-las. Só o bloco epistêmico
+   responde à chave. Em áudio o bloco epistêmico perde a bibliografia e a
+   menção a tabelas, que não existem na fala. */
+function comGuardrails(corpo,destino,opcoes){
+  const o=opcoes||{};
+  if(destino!=='studio')return corpo.trimEnd();
+  const partes=[corpo.trimEnd()];
+  if(o.epistemico!==false)partes.push(guardrails(o.falada===true));
+  partes.push(FIDELIDADE,o.falada===true?ESTILO_FALADO:ESTILO);
+  return partes.join('\n\n');
+}
+
+        let lang = 'pt';
+        let activeMode = null;
+
+        // ── i18n ──────────────────────────────────────────────────────────────────────
+        const i18n = {
+            en: {
+                title: 'NotebookLM Prompt Studio',
+                sub: 'Focused prompts for NotebookLM — epistemic guardrails always active',
+                badge: 'Epistemic guardrails embedded in all modes',
+                lblMode: 'Choose a mode:',
+                lblFocus: 'Specific focus',
+                lblFocusSub: '(optional — add context, angle or constraint)',
+                focusPlaceholder: 'E.g.: what connects to your research project; a specific term or debate you want prioritised; the disciplinary context of the sources…',
+                grToggleLabel: 'See active guardrails',
+                grItems: [
+                    '<strong>Inference marking</strong> — cross-source connections must be flagged: "Inferring [X] from [A]+[B] — neither source states this directly."',
+                    '<strong>Divergence preservation</strong> — if sources conflict, the conflict is the finding. Do not harmonise.',
+                    '<strong>No silence-filling</strong> — "The sources do not address this" is a valid and necessary answer.',
+                    '<strong>No bibliographic fabrication</strong> — cite sources by titles/authors visible in the notebook. No invented DOIs, page numbers or dates.',
+                    '<strong>Synthesis labelling</strong> — analyst interpretation must be marked as such, not presented as direct source claims.',
+                ],
+                btnSelectFirst: '🚀 Select a mode to generate',
+                btnGenerate: '🚀 Generate Prompt',
+                lblOutput: 'Generated Prompt',
+                copy: 'Copy', copied: 'Copied!',
+                charLimit: n => `${n} chars  ·  NotebookLM limit: 5000`,
+                charWarn: n => `⚠️ ${n} chars — exceeds NotebookLM limit (5000). Shorten the Specific Focus.`,
+                alertMode: 'Please select a mode first.',
+                footnote: 'Guardrails based on Roig (2026) and Kalai et al. (2025).<br>Grounding ≠ fabrication resistance. Mark inferences. Preserve divergences. Never fabricate bibliographic details.',
+                modes: [
+                    {
+                        id: 'summary',
+                        icon: '📋',
+                        name: 'Briefing Document',
+                        desc: 'Thematic synthesis with explicit source attribution and gap declaration',
+                        prompt: `Analyse the provided sources and produce a comprehensive briefing document.
+
+**EXECUTIVE SUMMARY** (3–5 sentences): What are the most critical takeaways from this material? Be direct and specific.
+
+**THEMATIC ANALYSIS**: For each major theme:
+— What each relevant source says about it (stated separately, with attribution)
+— Where sources genuinely converge: formulate this precisely
+— Where sources diverge: preserve the conflict as a finding, not a problem to resolve
+
+**GAPS**: What do the sources not cover? Declare omissions explicitly — do not fill silences with inference.
+
+**ACTIVE GUARDRAILS**:
+• Cross-source connections must be flagged: "Inferring [X] from [A]+[B] — neither source states this directly."
+• Divergences: do not harmonise. The conflict is the data.
+• Cite sources by titles/authors visible in the notebook. Do not fabricate DOIs, page numbers or bibliographic details.
+• "The sources do not address this" is a valid and necessary answer.
+• The tone must be objective and incisive.`
+                    },
+                    {
+                        id: 'study',
+                        icon: '📚',
+                        name: 'Study Guide',
+                        desc: 'Quiz, essay questions, and a contextual glossary grounded in the sources',
+                        prompt: `You are a research assistant and tutor. Create a detailed study guide based exclusively on the loaded source material.
+
+**QUIZ** (10 questions): Short-answer questions (2–3 sentences each). Include a separate answer key. Each answer must cite the specific source passage that supports it.
+
+**ESSAY QUESTIONS** (5): Open-ended questions that require articulating multiple aspects of the material. Do not supply answers.
+
+**GLOSSARY**: For each key term:
+— Contextual definition: how it is used specifically in these sources, not as generally used in the field
+— If the definition was synthesised across multiple sources, mark it as "synthesised definition — verify against originals"
+
+**ACTIVE GUARDRAILS**:
+• Every quiz answer must identify the source passage that supports it.
+• Glossary: define terms as they appear in the sources, not from general disciplinary usage.
+• Do not invent examples absent from the source material.
+• "The sources do not explicitly define this term" is a valid glossary entry.
+• Do not fabricate page numbers, DOIs or bibliographic details not visible in the notebook.`
+                    },
+                    {
+                        id: 'blog',
+                        icon: '✍️',
+                        name: 'Blog Post',
+                        desc: 'Essayistic register — no hyperbole, no forced analogies, source voice preserved',
+                        prompt: `Write a blog post in an **essayistic and reflective** register — not journalistic, not science communication, not content marketing.
+
+The assumed reader is educated and tolerant of density. Do not simplify to please; deepen to interest.
+
+---
+
+**TITLE**: Direct and precise. It should name the central problem or tension — not sell the text. Avoid colon-format titles like "X: How Y Changed Z".
+
+---
+
+**OPENING** (1–2 paragraphs): Begin with a concrete observation, a quote from the sources, or a genuine problem present in the material. Do not open with a rhetorical question ("Have you ever wondered…?") or a statement of magnitude ("This is one of the most important topics…"). The opening should situate, not impress.
+
+---
+
+**BODY**: For each argumentative move:
+— Continuous paragraphs; avoid fragmenting into unnecessary lists
+— Distinguish what the source states from your own reading as author — mark it explicitly when it is interpretation
+— If there is tension or conflict between sources, present it as a finding, not a problem to resolve
+— Block quotes: verbatim only, with source attribution — do not paraphrase as if quoting directly
+
+---
+
+**CLOSING**: Brief. Reflective. May end with a genuinely open question, an unresolved tension, or an observation that reframes what was said — not with a conclusive synthesis or call to action.
+
+---
+
+**EPISTEMIC GUARDRAILS**:
+• Every factual claim must be traceable to a specific source in the notebook.
+• Mark interpretation: "This is my reading — not a direct claim from the sources."
+• Preserve divergences between sources; do not flatten them.
+• Do not extrapolate beyond what the material supports.
+• Do not fabricate bibliographic details not visible in the notebook.
+
+---
+
+**STYLE — MANDATORY CONSTRAINTS**:
+• **No decorative analogies.** If an analogy is not in the sources and is not necessary for the argument, suppress it. Analogies that "illustrate" without advancing reasoning are noise.
+• **No inflated adjectives.** Prohibited: fascinating, revolutionary, surprising, incredible, powerful, remarkable, extraordinary. If the idea has force, the argument demonstrates it — not the adjective.
+• **No structural hyperbole.** Do not frame findings as "discoveries" or "revelations". Present what the material says.
+• **No generic transition phrases.** Avoid: "That said,", "In this context,", "It is worth noting that", "It is important to highlight". Build transitions within the argument itself.
+• **Neutral to dry tone.** Understatement is preferable to overstatement. Reflectivity emerges from content, not from enthusiastic qualifiers.
+• **Voice and attribution — CRITICAL.** If sources are written in the first person, that is the source author's voice — not yours. Write the post in the third person or in an impersonal essayistic voice. Refer to the source author as "the author" or by name when available. Never use "I", "my experience" or "I believe" as if they were your own — this is an authorship inversion.`
+                    },
+                ],
+            },
+            pt: {
+                title: 'NotebookLM Prompt Studio',
+                sub: 'Prompts focados para NotebookLM — guardrails epistêmicos sempre ativos',
+                badge: 'Guardrails epistêmicos embutidos em todos os modos',
+                lblMode: 'Escolha um modo:',
+                lblFocus: 'Foco específico',
+                lblFocusSub: '(opcional — adicione contexto, ângulo ou restrição)',
+                focusPlaceholder: 'Ex: o que conecta ao seu projeto de pesquisa; um termo ou debate específico a priorizar; o contexto disciplinar das fontes…',
+                grToggleLabel: 'Ver guardrails ativos',
+                grItems: [
+                    '<strong>Marcação de inferências</strong> — conexões entre fontes devem ser sinalizadas: "Infiro [X] de [A]+[B] — nenhuma fonte afirma isso diretamente."',
+                    '<strong>Preservação de divergências</strong> — se fontes conflitam, o conflito é o achado. Não harmonize.',
+                    '<strong>Sem preenchimento de silêncios</strong> — "as fontes não abordam isso" é resposta válida e necessária.',
+                    '<strong>Sem fabricação bibliográfica</strong> — cite fontes pelos títulos/autores visíveis no notebook. Não invente DOIs, páginas ou datas.',
+                    '<strong>Rotulagem de síntese</strong> — interpretação do analista deve ser marcada como tal, não apresentada como afirmação direta das fontes.',
+                ],
+                btnSelectFirst: '🚀 Selecione um modo para gerar',
+                btnGenerate: '🚀 Gerar Prompt',
+                lblOutput: 'Prompt Gerado',
+                copy: 'Copiar', copied: 'Copiado!',
+                charLimit: n => `${n} caracteres  ·  limite NotebookLM: 5000`,
+                charWarn: n => `⚠️ ${n} caracteres — excede limite NotebookLM (5000). Reduza o Foco Específico.`,
+                alertMode: 'Por favor, selecione um modo primeiro.',
+                footnote: 'Guardrails baseados em Roig (2026) e Kalai et al. (2025).<br>Grounding ≠ resistência à fabricação. Marque inferências. Preserve divergências. Nunca fabrique dados bibliográficos.',
+                modes: [
+                    {
+                        id: 'summary',
+                        icon: '📋',
+                        name: 'Documento de Resumo',
+                        desc: 'Síntese temática com atribuição explícita por fonte e declaração de lacunas',
+                        raiz: 'documento_de_briefing',
+                        prompt: [
+                          '<sumario_executivo>3 a 5 frases. Os principais achados desta documentação, ditos de forma direta e específica.</sumario_executivo>',
+                          '',
+                          '<analise_tematica>',
+                          '  <por_tema>O que cada fonte relevante diz, apresentado separadamente e com atribuição.</por_tema>',
+                          '  <convergencia>Onde as fontes convergem de fato. Formule o acordo com precisão.</convergencia>',
+                          '  <divergencia>Onde divergem. O conflito é o achado, não um problema a resolver.</divergencia>',
+                          '</analise_tematica>',
+                          '',
+                          '<lacunas>O que as fontes não cobrem. Declare a omissão; não preencha o silêncio com inferência.</lacunas>'
+                        ].join('\n')
+                    },
+                    {
+                        id: 'study',
+                        icon: '📚',
+                        name: 'Guia de Estudo',
+                        desc: 'Quiz, questões dissertativas e glossário contextual ancorados nas fontes',
+                        raiz: 'guia_de_estudo',
+                        prompt: [
+                          '<base>Use exclusivamente o material das fontes carregadas.</base>',
+                          '',
+                          '<quiz n="10">',
+                          '  <formato>Resposta curta, 2 a 3 frases.</formato>',
+                          '  <gabarito>Separado do quiz. Cada resposta identifica a passagem que a sustenta.</gabarito>',
+                          '</quiz>',
+                          '',
+                          '<dissertativas n="5">Questões abertas que exijam articular múltiplos aspectos do material. Não forneça respostas.</dissertativas>',
+                          '',
+                          '<glossario>',
+                          '  <definicao>Como o termo é usado nestas fontes, não o uso genérico do campo.</definicao>',
+                          '  <sintetizada>Se a definição vier de várias fontes, marque: definição sintetizada, verificar nos originais.</sintetizada>',
+                          '  <ausente>"As fontes não definem explicitamente este termo" é entrada válida.</ausente>',
+                          '</glossario>',
+                          '',
+                          '<proibicao>Não invente exemplo ausente do material de origem.</proibicao>'
+                        ].join('\n')
+                    },
+                    {
+                        id: 'blog',
+                        icon: '✍️',
+                        name: 'Post de Blog',
+                        desc: 'Registro ensaístico — sem hipérbole, sem analogias forçadas, voz das fontes preservada',
+                        raiz: 'post_de_blog',
+                        prompt: [
+                          '<registro>Ensaístico e reflexivo. Não jornalístico, não divulgação científica, não content marketing. O leitor tem formação sólida e tolera densidade: aprofunde em vez de simplificar.</registro>',
+                          '',
+                          '<titulo>Nomeie o problema ou a tensão central. Não venda o texto. Evite a fórmula "X: como Y mudou Z".</titulo>',
+                          '',
+                          '<abertura>',
+                          '  <certo>Uma observação concreta, uma citação das fontes ou um problema presente no material.</certo>',
+                          '  <errado>Pergunta retórica ("Você já se perguntou…?") ou afirmação de magnitude ("um dos temas mais importantes…").</errado>',
+                          '  <funcao>Situar, não impressionar.</funcao>',
+                          '</abertura>',
+                          '',
+                          '<desenvolvimento>',
+                          '  <item>Parágrafos contínuos. Não fragmente em listas sem necessidade.</item>',
+                          '  <item>Distinga o que a fonte afirma do que é sua leitura. Marque a interpretação como sua.</item>',
+                          '  <item>Tensão entre fontes é dado, não problema a resolver.</item>',
+                          '  <item>Citação em bloco só verbatim e com atribuição. Não apresente paráfrase como citação direta.</item>',
+                          '</desenvolvimento>',
+                          '',
+                          '<fechamento>Breve. Pode terminar numa questão aberta, numa tensão não resolvida ou numa observação que desloca o que foi dito. Sem síntese conclusiva e sem chamada à ação.</fechamento>',
+                          '',
+                          '<voz>',
+                          '  <regra>Se as fontes estão em primeira pessoa, essa voz é do autor delas, não sua. Escreva em terceira pessoa ou em voz ensaística impessoal.</regra>',
+                          '  <regra>Refira-se ao autor das fontes como "o autor" ou pelo nome, quando disponível.</regra>',
+                          '  <errado>Usar "eu", "minha experiência" ou "acredito" como se fossem seus: isso inverte a autoria.</errado>',
+                          '</voz>',
+                          '',
+                          '<enquadramento>Não apresente achados como descobertas ou revelações. Apresente o que o material diz.</enquadramento>'
+                        ].join('\n')
+                    },
+                ],
+            },
+        };
+
+        // ── Render ────────────────────────────────────────────────────────────────────
+        function applyStrings() {
+            const t = i18n[lang];
+            document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+            document.getElementById('h-title').textContent = t.title;
+            document.getElementById('h-sub').textContent = t.sub;
+            document.getElementById('h-badge').textContent = t.badge;
+            document.getElementById('lbl-mode').textContent = t.lblMode;
+            document.getElementById('lbl-focus').textContent = t.lblFocus;
+            document.getElementById('lbl-focus-sub').textContent = t.lblFocusSub;
+            document.getElementById('customFocus').placeholder = t.focusPlaceholder;
+            document.getElementById('gr-toggle-label').textContent = t.grToggleLabel;
+            document.getElementById('lbl-output').textContent = t.lblOutput;
+            document.getElementById('copyText').textContent = t.copy;
+            document.getElementById('footnote').innerHTML = t.footnote;
+
+            // Guardrail list
+            const gl = document.getElementById('gr-list');
+            gl.innerHTML = t.grItems.map(item => `<li>${item}</li>`).join('');
+
+            // Mode cards
+            const grid = document.getElementById('modeGrid');
+            grid.innerHTML = t.modes.map(m => `
+    <button class="mode-card${activeMode === m.id ? ' active' : ''}" onclick="selectMode('${m.id}')">
+      <div class="mode-check">✓</div>
+      <div class="mode-icon">${m.icon}</div>
+      <div class="mode-name">${m.name}</div>
+      <div class="mode-desc">${m.desc}</div>
+    </button>
+  `).join('');
+
+            // Button text
+            const btn = document.getElementById('btn-gen');
+            btn.disabled = !activeMode;
+            document.getElementById('btn-gen-text').textContent = activeMode ? t.btnGenerate : t.btnSelectFirst;
+        }
+
+        function setLang(l) {
+            lang = l;
+            document.getElementById('btnEN').classList.toggle('active', l === 'en');
+            document.getElementById('btnPT').classList.toggle('active', l === 'pt');
+            applyStrings();
+        }
+
+        function selectMode(id) {
+            activeMode = id;
+            applyStrings();
+        }
+
+        function toggleGrDetail() {
+            const toggle = document.getElementById('grToggle');
+            const body = document.getElementById('grBody');
+            toggle.classList.toggle('open');
+            body.classList.toggle('open');
+        }
+
+        // ── Envolve conteúdo num elemento XML, com indentação de dois espaços ─────────
+        function tagXml(nome, conteudo, attrs) {
+            if (!conteudo) return '';
+            const a = attrs ? ' ' + Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(' ') : '';
+            const corpo = String(conteudo).split('\n').map(l => l ? '  ' + l : l).join('\n');
+            return `<${nome}${a}>\n${corpo}\n</${nome}>`;
+        }
+
+        // Escapa texto do formulário: & ou < quebrariam o XML entregue ao modelo.
+        function esc(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        /* Os três modos são artefatos do painel Studio, que não herda o campo Custom
+           Instructions. Destino fixo: studio — todo prompt daqui carrega guardrails. */
+        const DESTINO = 'studio';
+
+        function buildPrompt() {
+            const t = i18n[lang];
+            const mode = t.modes.find(m => m.id === activeMode);
+            if (!mode) return '';
+            const focus = document.getElementById('customFocus').value.trim();
+            const partes = [mode.prompt];
+            if (focus) partes.push(tagXml('foco', esc(focus)));
+            return comGuardrails(tagXml(mode.raiz || mode.id, partes.join('\n\n')), DESTINO);
+        }
+
+        // ── Generate ──────────────────────────────────────────────────────────────────
+        function generate() {
+            if (!activeMode) { alert(i18n[lang].alertMode); return; }
+            const prompt = buildPrompt();
+
+            document.getElementById('outputBox').textContent = prompt;
+
+            const n = prompt.length;
+            const cc = document.getElementById('charCount');
+            cc.innerHTML = medidorHtml(n, DESTINO);
+
+            const card = document.getElementById('outputCard');
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ── Copy ──────────────────────────────────────────────────────────────────────
+        function doCopy() {
+            const t = i18n[lang];
+            navigator.clipboard.writeText(document.getElementById('outputBox').textContent).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.classList.add('copied');
+                document.getElementById('copyIcon').textContent = '✓';
+                document.getElementById('copyText').textContent = t.copied;
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    document.getElementById('copyIcon').textContent = '📋';
+                    document.getElementById('copyText').textContent = t.copy;
+                }, 2000);
+            }).catch(() => alert('Copy failed — please select and copy manually.'));
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────────────────
+        setLang('pt');
+    </script>
+<script>
+(function(){
+  const K='nblm.studio';
+  const _sm=selectMode,_tg=toggleGrDetail;
+  
+  const _nlmLangS = setLang;
+  window.setLang = function(l) {
+    _nlmLangS(l);
+    document.getElementById('nlm-btn-pt')?.classList.toggle('nlm-lang-on', l==='pt');
+    document.getElementById('nlm-btn-en')?.classList.toggle('nlm-lang-on', l==='en');
+    localStorage.setItem('nblm.studio.lang', l);
+  };
+  window.selectMode=function(id){_sm(id);localStorage.setItem(K+'.mode',id);};
+  window.toggleGrDetail=function(){_tg();localStorage.setItem(K+'.grOpen',document.getElementById('grBody').classList.contains('open'));};
+  document.getElementById('customFocus').addEventListener('input',e=>localStorage.setItem(K+'.focus',e.target.value));
+  const sl=localStorage.getItem(K+'.lang'),sm=localStorage.getItem(K+'.mode'),
+        sf=localStorage.getItem(K+'.focus'),sg=localStorage.getItem(K+'.grOpen');
+  if(sl&&sl!=='pt')setLang(sl);
+  if(sm)selectMode(sm);
+  if(sf)document.getElementById('customFocus').value=sf;
+  if(sg==='true')toggleGrDetail();
+})();
+</script>
+<script id="oficina-limpar">
+/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab e
+   studio. Apaga só o texto digitado nesta página (e sua cópia guardada no
+   navegador); seleções de modo, template e chaves ficam como estão.
+   Primeiro clique arma, segundo confirma; desarma sozinho em 3 s. */
+window.limparCampos=function(btn){
+  const ROTULO='Limpar campos';
+  if(!btn.dataset.armado){
+    btn.dataset.armado='1';btn.textContent='Confirmar limpeza';btn.classList.add('armado');
+    btn._t=setTimeout(()=>{delete btn.dataset.armado;btn.textContent=ROTULO;btn.classList.remove('armado');},3000);
+    return;
+  }
+  clearTimeout(btn._t);delete btn.dataset.armado;btn.classList.remove('armado');
+  document.querySelectorAll('textarea, input[type="text"]').forEach(el=>{
+    el.value='';el.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  btn.textContent='Campos limpos';
+  setTimeout(()=>{btn.textContent=ROTULO;},1500);
+};
+</script>
+</body>
+
+</html>
