@@ -70,7 +70,7 @@ body::before {
 </style>
 <style id="oficina-unificado">
 /* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
-   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+   dossie, lab, studio e revisao; ao alterar, replicar nas seis páginas. */
 .nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
 .nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
 .nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
@@ -103,6 +103,10 @@ body::before {
 .suite{margin-top:1.5rem!important}
 .chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
 .hint{color:var(--suite-ink-2)!important}
+/* Interruptor "Responder no chat" (suite, dossie, lab, revisao) */
+.chat-env{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-ink-2,#3b4658);cursor:pointer;white-space:nowrap;user-select:none}
+.chat-env input{margin:0;width:14px;height:14px;accent-color:var(--suite-accent,#245b78);cursor:pointer}
+.chat-env[hidden]{display:none}
 </style>
 </head>
 <body>

@@ -52,6 +52,21 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f0f4f8;padding:2
 .rf-candidate input{width:100%;min-width:0;padding:8px 10px;text-align:center;font-variant-numeric:tabular-nums}
 .rf-candidate input.invalid{border-color:#b91c1c!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
 .rf-candidate-error{grid-column:1/-1;min-height:16px;margin-top:-4px;font-size:11.5px;font-weight:600;color:#b91c1c}
+.rf-opcoes{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px 22px}
+.rf-opcoes[hidden]{display:none}
+.rf-studio{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;font-weight:650;color:#374151;cursor:pointer}
+.rf-studio input{width:auto;padding:0;margin:0}
+.rf-studio span{font-weight:400;color:#6b7280;font-size:11.5px}
+.rf-campos{display:grid;gap:10px;margin:0 18px 14px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:7px;background:#fafafa}
+.rf-campos[hidden]{display:none}
+.rf-campos label{display:block;margin:0 0 3px;font-size:12px;font-weight:650;color:#374151}
+.rf-campos p{font-size:11.5px;line-height:1.45;color:#6b7280;margin:0 0 5px}
+.rf-campos input,.rf-campos textarea{width:100%;min-width:0;padding:8px 10px;font:inherit;font-size:13px}
+.rf-campos textarea{resize:vertical;min-height:58px}
+.rf-campos .invalid{border-color:#b91c1c!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
+.rf-campos-error{min-height:16px;font-size:11.5px;font-weight:600;color:#b91c1c}
+/* Campo em que se escreve: muda de cor quando o prompt final passa do teto. */
+textarea.campo-excesso,input.campo-excesso{border-color:#b91c1c!important;border-width:2px!important;background:#fef2f2!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
 
 .body{position:relative}
 .ptext{font-family:'Roboto Mono',ui-monospace,monospace;font-size:12px;line-height:1.9;color:#374151;padding:16px 18px;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:hidden}
@@ -195,6 +210,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
   .card-header .btn-copy { width: 100%; justify-content: center; }
   .rf-candidate { grid-template-columns: 1fr; }
   .rf-candidate-error { grid-column:1; }
+  .card-footer { flex-wrap: wrap; row-gap: 8px; }
+  .card-footer .medidor { flex-basis: 100%; }
   .exhibits { grid-template-columns: 1fr !important; }
   .output-meta, .output-bar { gap: .75rem; flex-wrap: wrap; }
   button, .generate-btn, button.generate { min-height: 44px; }
@@ -220,7 +237,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 </script>
 <style id="oficina-unificado">
 /* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
-   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+   dossie, lab, studio e revisao; ao alterar, replicar nas seis páginas. */
 .nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
 .nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
 .nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
@@ -253,7 +270,29 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .suite{margin-top:1.5rem!important}
 .chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
 .hint{color:var(--suite-ink-2)!important}
+/* Interruptor "Responder no chat" (suite, dossie, lab, revisao) */
+.chat-env{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-ink-2,#3b4658);cursor:pointer;white-space:nowrap;user-select:none}
+.chat-env input{margin:0;width:14px;height:14px;accent-color:var(--suite-accent,#245b78);cursor:pointer}
+.chat-env[hidden]{display:none}
 </style>
+<script id="oficina-chat">
+/* Envelope "Responder no chat". Bloco idêntico em suite, dossie, lab e revisao;
+   ao alterar, replicar nas quatro. Prompt de destino chat sai precedido de um
+   aviso e cercado por ```xml, para o chat responder ele mesmo (com índices e sob
+   o system prompt) em vez de encaminhar a tarefa ao Studio. O interruptor começa
+   sempre ligado: o estado não é guardado no navegador. Se o prompt já contiver
+   três crases, a cerca ganha uma a mais, para não fechar no meio. */
+const OFICINA_AVISO_CHAT={
+  pt:'Responda aqui no chat, em texto, seguindo as instruções do bloco abaixo. Não crie artefato no Studio nem encaminhe a tarefa para ele.',
+  en:'Answer here in the chat, as text, following the instructions in the block below. Do not create a Studio artifact or hand the task over to it.'
+};
+function envelopeChat(texto,ligado,lang){
+  if(!ligado)return texto;
+  let cerca='```';
+  while(texto.includes(cerca))cerca+='`';
+  return (OFICINA_AVISO_CHAT[lang]||OFICINA_AVISO_CHAT.pt)+'\n\n'+cerca+'xml\n'+texto.trim()+'\n'+cerca;
+}
+</script>
 </head>
 <body>
 <nav class="nlm-nav"><a class="nlm-home" href="index.html">Oficina ↗</a><a href="suite.html" class="nlm-active">Suite</a><a href="dossie.html">Dossiê</a><a href="lab.html">Lab</a><a href="studio.html">Studio</a></nav>
@@ -326,6 +365,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
         <span class="barra"><i id="na-b"></i></span>
         <span class="char-label" id="na-c"></span>
       </div>
+      <label class="chat-env" title="Acrescenta um aviso para o chat responder ele mesmo, sem delegar ao Studio, e cerca o prompt com ```xml"><input type="checkbox" id="na-env" checked autocomplete="off" onchange="set('na',textoChat('na',NA),'chat')"> Responder no chat</label>
       <button class="btn-expand" id="na-xb" onclick="tog('na',this)">
         <svg id="na-ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         ver tudo
@@ -341,7 +381,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
       <div class="card-info">
         <span class="eyebrow">Passo 3 · opcional</span>
         <h2>Refinamento pós-Analyser</h2>
-        <p>Cole no <strong>chat</strong> após o Analyser. Semear Discussões pode ser seguido por Auditar candidato.</p>
+        <p>Cole no <strong>chat</strong> após o Analyser. Semear Discussões pode ser seguido por Auditar candidato; Mapear rotas, por Gerar guia.</p>
       </div>
       <button class="btn-copy" onclick="cp('rf',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -353,11 +393,28 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
     <div class="hint" id="rf-hint"></div>
     <div class="rf-candidate" id="rf-candidate" hidden>
       <div class="rf-candidate-copy">
-        <label for="rf-candidate-input">Candidato do Refinamento 4A</label>
+        <label for="rf-candidate-input" id="rf-candidate-label">Candidato do Refinamento 4A</label>
         <p id="rf-candidate-help">Informe o número do candidato gerado na mesma conversa do NotebookLM.</p>
       </div>
       <input id="rf-candidate-input" type="number" min="1" max="5" step="1" inputmode="numeric" aria-describedby="rf-candidate-help rf-candidate-error">
       <p class="rf-candidate-error" id="rf-candidate-error" role="alert" aria-live="polite"></p>
+      <div class="rf-opcoes" id="rf-opcoes" hidden>
+        <label class="rf-studio"><input type="checkbox" id="rf-studio-input" autocomplete="off"> Sugerir artefatos do Studio no fim <span>Desligado: o guia termina na etapa 6.</span></label>
+        <label class="rf-studio"><input type="checkbox" id="rf-handoff-input" autocomplete="off"> Handoff de infográfico <span>Mostra o botão do 5C.</span></label>
+      </div>
+    </div>
+    <div class="rf-campos" id="rf-campos" hidden>
+      <div>
+        <label for="rf-pergunta-input">Pergunta que o guia deve responder</label>
+        <p id="rf-pergunta-help">Uma pergunta prática, na sua formulação. As fontes que não a respondem ficam de fora.</p>
+        <textarea id="rf-pergunta-input" rows="2" autocomplete="off" aria-describedby="rf-pergunta-help rf-campos-error" placeholder="Ex.: Como saber se estou usando IA de forma correta e não sabotando minhas funções cognitivas?"></textarea>
+      </div>
+      <div>
+        <label for="rf-leitor-input">Leitor do guia</label>
+        <p id="rf-leitor-help">Para quem o guia é escrito. Vazio: adulto leigo no assunto.</p>
+        <input id="rf-leitor-input" type="text" autocomplete="off" aria-describedby="rf-leitor-help" placeholder="Ex.: Estudante do ensino médio, 15 a 17 anos, sem formação no assunto.">
+      </div>
+      <p class="rf-campos-error" id="rf-campos-error" role="alert" aria-live="polite"></p>
     </div>
     <div class="divider"></div>
     <div class="body">
@@ -370,6 +427,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
         <span class="barra"><i id="rf-b"></i></span>
         <span class="char-label" id="rf-c"></span>
       </div>
+      <label class="chat-env" title="Acrescenta um aviso para o chat responder ele mesmo, sem delegar ao Studio, e cerca o prompt com ```xml"><input type="checkbox" id="rf-env" checked autocomplete="off" onchange="refreshRf()"> Responder no chat</label>
       <button class="btn-expand" id="rf-xb" onclick="tog('rf',this)">
         <svg id="rf-ic" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         ver tudo
@@ -818,6 +876,123 @@ Não transporte para o foco riscos nem comentários internos da auditoria.
 Não gere configuração. Informe motivo da recusa, reformulação possível, e tipo de fonte necessário ou N/A.
 </saida>
 
+</tarefa>`,
+
+`<tarefa nome="refinamento_5a_mapear_rotas">
+
+<pergunta>{{PERGUNTA}}</pergunta>
+
+<leitor>{{LEITOR}}</leitor>
+
+<base>O diagnóstico do Notebook Source Analyser desta conversa. Se não houver, as fontes marcadas do caderno.</base>
+
+<objetivo>
+Mapear que práticas deste corpus respondem à pergunta, para este leitor, e propor rotas para eu escolher. Não escreva o guia nesta etapa. Fonte que não responde à pergunta fica fora; diga em uma linha por quê.
+</objetivo>
+
+<formato>Blocos verticais. Sem tabelas. Cite [n] em toda atribuição.</formato>
+
+<origem>
+- PRESCRITA: o autor manda ou recomenda fazer.
+- EXEMPLO: o autor relata um caso ou prática sem recomendá-la como regra.
+- DEDUZIDA: o autor não prescreve, mas a prática decorre de uma tese dele. Cite a tese [n] e diga, em uma frase, como a prática decorre dela. Um passo só. Não transforme dedução em obrigação.
+Se a fonte estudou outro público (adultos, profissionais, universitários), aplicá-la a este leitor é DEDUZIDA, e diga qual era o público.
+Trecho que a fonte não diz e você acrescenta para o caso do leitor (outro equipamento, outro contexto) leva [i] logo depois dele, mesmo dentro de item PRESCRITO. Ex.: "Faça pausas [3]; use o recurso X para isso [i]."
+</origem>
+
+<sem_invencao>Não invente número (distância, prazo, quantidade, frequência) que a fonte não dê.</sem_invencao>
+
+<etapa n="1" nome="o que responde à pergunta">Por eixo: cada fonte que responde, com a origem e [n]. Depois, as que ficam fora. Resumo derivado e fonte 🔴 ficam fora. Fonte que parece conversa com chatbot ou texto gerado por IA: marque [IA] onde ela sustentar algo e liste-a em "Possível texto de IA", com o motivo em uma linha, para eu removê-la do caderno.</etapa>
+
+<etapa n="2" nome="desacordos">Onde as fontes recomendam práticas incompatíveis, uma critica a prática de outra, ou partem de diagnósticos opostos. As duas posições citadas [n]. Atribua a posição só se a fonte a afirma; não resolva nem procure meio-termo.</etapa>
+
+<etapa n="3" nome="rotas">
+De duas a quatro rotas, cada uma coerente por dentro. Bloco ROTA N com:
+- Resposta que a rota dá à pergunta, em uma frase
+- Premissa e fonte [n]
+- Fontes e origem de cada uma
+- Densidade: COMPLETA, PARCIAL ou SÓ PRINCÍPIO
+- O que pede do estudante
+- Quem no corpus a critica, com o argumento [n]. Só crítica explícita; se for dedução sua, marque (crítica deduzida). Se não há, escreva "nenhuma crítica no corpus".
+</etapa>
+
+<etapa n="4" nome="o que fica de fora">Práticas que só existiriam juntando posições incompatíveis.</etapa>
+
+<encerramento literal="sim">Escolha uma rota e execute o Refinamento 5B. Nada depois desta frase.</encerramento>
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_5b_gerar_guia">
+
+<rota>ROTA {{ROTA}}</rota>
+
+<guarda>Se a rota estiver vazia, sem número ou ambígua, responda somente: Indique o número da rota do Refinamento 5A.</guarda>
+
+<base>A pergunta, o leitor e a rota do Refinamento 5A, e as fontes que a rota lista.</base>
+
+<objetivo>
+Um guia básico que responda à pergunta do 5A para o leitor do 5A. É um guia de autoavaliação: o estudante precisa conseguir perceber sozinho se está indo bem e o que fazer quando não está.
+</objetivo>
+
+<origem>
+Cada item leva PRESCRITO, EXEMPLO ou DEDUZIDO, com citação [n]. DEDUZIDO traz a tese de partida e a frase que liga a tese ao item. Achado de pesquisa (o autor mediu ou observou, não mandou fazer) transformado em pergunta ou passo é DEDUZIDO. Se a fonte estudou outro público, diga qual.
+Trecho que a fonte não diz e você acrescenta para o caso do leitor leva [i] logo depois dele, mesmo dentro de item PRESCRITO e na resposta curta. Mantenha [IA] nas fontes assim marcadas no 5A.
+</origem>
+
+<sem_invencao>
+Não invente prazo, quantidade, frequência, nota de corte nem ferramenta que a fonte não dê. Quando a fonte dá o princípio e não o procedimento, escreva: "A fonte indica o princípio, mas não detalha como."
+</sem_invencao>
+
+<etapa n="1" nome="resposta curta">A resposta da rota à pergunta, em até três frases.</etapa>
+<etapa n="2" nome="sinais de que está indo bem">Perguntas que o estudante faz a si mesmo, cada uma com origem e [n].</etapa>
+<etapa n="3" nome="sinais de alerta">Idem.</etapa>
+<etapa n="4" nome="o que fazer">Passos numerados quando um sinal de alerta aparece. Ação em uma frase, origem, [n].</etapa>
+<etapa n="5" nome="quem pensa diferente">As críticas que outras fontes do caderno fazem a esta rota, em linguagem simples e na força que elas lhes dão. Não responda nem suavize.</etapa>
+<etapa n="6" nome="o que as fontes não dizem">O que fica sem resposta para a idade e a vida escolar deste leitor.</etapa>
+
+<linguagem>
+Frases curtas, verbos de ação, segunda pessoa. Termo técnico só quando necessário, explicado na primeira vez em palavras do dia a dia; se a explicação não vem da fonte, marque (explicação minha). Situações escolares (lição, redação, prova) podem ilustrar, marcadas (exemplo meu). Simplifique o vocabulário, nunca o conteúdo.
+</linguagem>
+
+{{FIM}}
+
+</tarefa>`,
+
+`<tarefa nome="refinamento_5c_handoff_infografico">
+
+<destino>Responda aqui no chat só com o bloco handoff_infografico abaixo, sem comentário antes ou depois.</destino>
+
+<falta_guia>Se não houver guia do Refinamento 5B nesta conversa, responda no chat somente: Execute o Refinamento 5B antes do 5C.</falta_guia>
+
+<objetivo>
+Converter o guia do 5B desta conversa (ou o colado logo antes deste pedido) num bloco que outro modelo vai usar para montar um infográfico com gráficos e texto, sem imagem gerada. Esse modelo não vê as fontes nem esta conversa: o bloco precisa bastar.
+Converta, não reescreva: não reorganize por temas, não resuma de novo, não acrescente conteúdo.
+</objetivo>
+
+<regras>
+- Siga as seis etapas do guia, na ordem.
+- Cada item mantém a origem (PRESCRITO, EXEMPLO ou DEDUZIDO) e as marcas [i] e [IA] como estão no guia.
+- Item DEDUZIDO não vira ordem.
+- Número só se o guia o der. Em dado, valor leva só o número em algarismos (faixa como 1–5); a unidade vai só em unidade, escrita como no guia.
+- Não sugira cor, tipografia, ícone, layout nem estilo.
+</regras>
+
+<formato>
+<handoff_infografico>
+<pergunta>a do 5A</pergunta>
+<leitor>o do 5A</leitor>
+<rota>número e nome da rota; quantas rotas o 5A propôs; densidade</rota>
+<resposta_curta>etapa 1</resposta_curta>
+<sinais_bons>etapa 2, um por sinal: <item origem="" fonte="">pergunta</item></sinais_bons>
+<sinais_alerta>etapa 3, idem</sinais_alerta>
+<o_que_fazer>etapa 4, um por passo: <passo ordem="" origem="" fonte="">ação</passo></o_que_fazer>
+<dados>zero ou mais: <dado valor="" unidade="" fonte="">o que o número mede</dado></dados>
+<criticas>etapa 5, uma por crítica: <critica fonte="">uma ou duas frases</critica></criticas>
+<lacunas>etapa 6, uma por item: <lacuna>frase</lacuna></lacunas>
+<fontes>só as citadas acima: <fonte ref="como citada no guia">autor, título e ano, se a fonte os der; nunca nome de arquivo</fonte></fontes>
+</handoff_infografico>
+</formato>
+
 </tarefa>`
 ];
 
@@ -851,22 +1026,85 @@ const RF_META=[
     color:'#9f1239', tint:'#ffe4e6',
     hint:'Testa um candidato do 4A e prepara apenas os que passam para o Dossiê.',
     icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><polyline points="9 12 11 14 15 10"/>'
+  },
+  {
+    label:'Mapear rotas',
+    color:'#2563eb', tint:'#dbeafe',
+    hint:'Mostra que práticas o corpus sustenta para a sua pergunta, inclusive as deduzidas da teoria, e onde as fontes discordam. Propõe rotas sem harmonizá-las.',
+    icon:'<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>'
+  },
+  {
+    label:'Gerar guia',
+    color:'#0369a1', tint:'#e0f2fe',
+    hint:'Transforma a rota escolhida no 5A num guia de autoavaliação para o leitor indicado, com a origem de cada item e as críticas do corpus.',
+    icon:'<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>'
+  },
+  {
+    label:'Handoff de infográfico',
+    color:'#4f46e5', tint:'#e0e7ff',
+    hint:'5C, etapa seguinte do Gerar guia. Use na mesma conversa, depois do 5B. Ele converte o guia num bloco, no chat, para o modelo que vai montar o infográfico: copie a resposta ou use "Salvar na nota". Em conversa longa, cole antes no chat o guia do 5B.',
+    icon:'<line x1="6" y1="20" x2="6" y2="14"/><line x1="12" y1="20" x2="12" y2="9"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="3" y1="20" x2="21" y2="20"/>'
   }
 ];
 
 let curRf=0;
 const RF_AUDIT_INDEX=4;
+const RF_ROTAS_INDEX=5;
+const RF_GUIA_INDEX=6;
+/* 5C: só existe como etapa seguinte do 5B, quando a caixa do 5B está marcada. */
+const RF_HANDOFF_INDEX=7;
+/* O 5C pede uma nota salva, não resposta de chat: o envelope sai enquanto ele está na tela. */
+/* Fim do 5B: o interruptor decide se o guia termina seco ou sugere artefatos do Studio. */
+const RF_FIM={
+  sem:'<encerramento>Termine na etapa 6. Não sugira próximo passo, artefato do Studio nem outra tarefa.</encerramento>',
+  com:'<encerramento>Depois da etapa 6, sugira de um a três artefatos do Studio que ajudariam este leitor a usar o guia, só entre: Mapa mental, Cartões didáticos, Teste, Resumo em Áudio no formato Breve. Um por linha, com o motivo. Se um infográfico ajudaria este leitor, acrescente a linha "5C: handoff para infográfico em modelo externo", com o motivo. Nada depois disso.</encerramento>'
+};
+const LEITOR_PADRAO='Adulto, leigo no assunto. Não presuma vocabulário técnico.';
+
+/* Campo numérico partilhado pelo 4B (candidato do 4A) e pelo 5B (rota do 5A). */
+const RF_NUM={
+  [RF_AUDIT_INDEX]:{token:'{{CANDIDATO}}',max:5,label:'Candidato do Refinamento 4A',
+    help:'Informe o número do candidato gerado na mesma conversa do NotebookLM.',erro:'Informe o candidato do 4A.'},
+  [RF_GUIA_INDEX]:{token:'{{ROTA}}',max:4,label:'Rota do Refinamento 5A',
+    help:'Informe o número da rota escolhida no 5A, na mesma conversa do NotebookLM.',erro:'Informe a rota do 5A.'}
+};
 
 function getRfCandidate(){
+  const cfg=RF_NUM[curRf];
   const input=document.getElementById('rf-candidate-input');
   const value=input?Number(input.value):NaN;
-  return Number.isInteger(value)&&value>=1&&value<=5?String(value):'';
+  return cfg&&Number.isInteger(value)&&value>=1&&value<=cfg.max?String(value):'';
 }
+
+function getRfPergunta(){return document.getElementById('rf-pergunta-input').value.trim().replace(/\s+/g,' ')}
+function getRfLeitor(){return document.getElementById('rf-leitor-input').value.trim().replace(/\s+/g,' ')||LEITOR_PADRAO}
 
 function getRfText(index){
   const text=RF[index];
-  if(index!==RF_AUDIT_INDEX)return text;
-  return text.replace('{{CANDIDATO}}',getRfCandidate());
+  if(index===RF_GUIA_INDEX)return text.replace(RF_NUM[index].token,getRfCandidate())
+    .replace('{{FIM}}',RF_FIM[document.getElementById('rf-studio-input').checked?'com':'sem']);
+  if(RF_NUM[index])return text.replace(RF_NUM[index].token,getRfCandidate());
+  if(index===RF_ROTAS_INDEX)return text.replace('{{PERGUNTA}}',getRfPergunta()).replace('{{LEITOR}}',getRfLeitor());
+  return text;
+}
+
+function clearRfCamposError(){
+  document.getElementById('rf-pergunta-input').classList.remove('invalid');
+  document.getElementById('rf-pergunta-input').removeAttribute('aria-invalid');
+  document.getElementById('rf-campos-error').textContent='';
+}
+
+function showRfCamposError(){
+  const input=document.getElementById('rf-pergunta-input');
+  input.classList.add('invalid');
+  input.setAttribute('aria-invalid','true');
+  document.getElementById('rf-campos-error').textContent='Escreva a pergunta que o guia deve responder.';
+  input.focus();
+}
+
+function handleRfCamposInput(){
+  if(getRfPergunta())clearRfCamposError();
+  refreshRf();
 }
 
 function clearRfCandidateError(){
@@ -880,12 +1118,16 @@ function showRfCandidateError(){
   const input=document.getElementById('rf-candidate-input');
   input.classList.add('invalid');
   input.setAttribute('aria-invalid','true');
-  document.getElementById('rf-candidate-error').textContent='Informe o candidato do 4A.';
+  document.getElementById('rf-candidate-error').textContent=RF_NUM[curRf].erro;
   input.focus();
 }
 
 function refreshRf(){
-  set('rf',getRfText(curRf),'chat');
+  const texto=textoRf();
+  set('rf',texto,'chat');
+  /* Sinal no próprio campo: só marca o que tem texto. */
+  const excesso=texto.length>TETOS.chat;
+  ['rf-pergunta-input','rf-leitor-input'].forEach(id=>{const c=document.getElementById(id);c.classList.toggle('campo-excesso',excesso&&!!c.value.trim())});
 }
 
 function handleRfCandidateInput(){
@@ -898,6 +1140,11 @@ function handleRfCandidateInput(){
    studio.html — as páginas são standalone, sem build. Ao editar, edite todas. */
 const TETOS={custom:10000,chat:4000,studio:5000};
 const DESTINO_ROTULO={custom:'Custom Instructions',chat:'Chat principal',studio:'Painel Studio'};
+
+/* Texto que vai ao chat, com o envelope quando o interruptor do cartão está ligado. */
+function textoChat(id,texto){return envelopeChat(texto,document.getElementById(id+'-env').checked,'pt')}
+
+function textoRf(){return textoChat('rf',getRfText(curRf))}
 
 function set(id,text,destino){
   document.getElementById(id+'-t').textContent=text;
@@ -922,7 +1169,8 @@ function tog(id,btn){
 
 function renderChips(){
   const wrap=document.getElementById('rf-chips');
-  wrap.innerHTML=RF_META.map((m,i)=>
+  const comHandoff=document.getElementById('rf-handoff-input').checked;
+  wrap.innerHTML=RF_META.map((m,i)=>i===RF_HANDOFF_INDEX&&!comHandoff?'':
     `<button class="chip${i===curRf?' on':''}" style="--c:${m.color};--ct:${m.tint}" onclick="selRf(${i},this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>
       ${m.label}
@@ -938,7 +1186,18 @@ function applyRfMeta(i){
   document.getElementById('rf-icon').innerHTML=
     `<svg viewBox="0 0 24 24" fill="none" stroke="${m.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>`;
   document.getElementById('rf-hint').textContent=m.hint;
-  document.getElementById('rf-candidate').hidden=i!==RF_AUDIT_INDEX;
+  const cfg=RF_NUM[i];
+  document.getElementById('rf-candidate').hidden=!cfg;
+  document.getElementById('rf-campos').hidden=i!==RF_ROTAS_INDEX;
+  document.getElementById('rf-opcoes').hidden=i!==RF_GUIA_INDEX;
+  if(cfg){
+    const input=document.getElementById('rf-candidate-input');
+    document.getElementById('rf-candidate-label').textContent=cfg.label;
+    document.getElementById('rf-candidate-help').textContent=cfg.help;
+    input.max=cfg.max;
+    input.value='';
+    clearRfCandidateError();
+  }
 }
 
 function selRf(i,btn){
@@ -957,11 +1216,15 @@ function selRf(i,btn){
 }
 
 async function cp(id,btn){
-  if(id==='rf'&&curRf===RF_AUDIT_INDEX&&!getRfCandidate()){
+  if(id==='rf'&&RF_NUM[curRf]&&!getRfCandidate()){
     showRfCandidateError();
     return;
   }
-  const map={sp:SP,na:NA,rf:getRfText(curRf)};
+  if(id==='rf'&&curRf===RF_ROTAS_INDEX&&!getRfPergunta()){
+    showRfCamposError();
+    return;
+  }
+  const map={sp:SP,na:textoChat('na',NA),rf:textoRf()};
   const orig=btn.innerHTML;
   try{
     await navigator.clipboard.writeText(map[id]);
@@ -972,10 +1235,14 @@ async function cp(id,btn){
 }
 
 set('sp',SP,'custom');
-set('na',NA,'chat');
+set('na',textoChat('na',NA),'chat');
 renderChips();
 applyRfMeta(0);
 document.getElementById('rf-candidate-input').addEventListener('input',handleRfCandidateInput);
+document.getElementById('rf-studio-input').addEventListener('change',refreshRf);
+document.getElementById('rf-handoff-input').addEventListener('change',renderChips);
+document.getElementById('rf-pergunta-input').addEventListener('input',handleRfCamposInput);
+document.getElementById('rf-leitor-input').addEventListener('input',refreshRf);
 refreshRf();
 </script>
 <script>
@@ -984,6 +1251,12 @@ refreshRf();
   const _sr=selRf,_tg=tog;
   window.selRf=function(i,btn){_sr(i,btn);localStorage.setItem(K+'.rf',i);};
   window.tog=function(id,btn){_tg(id,btn);const open=document.getElementById(id+'-t').classList.contains('open');localStorage.setItem(K+'.'+id+'_open',open);};
+  [['rf-pergunta-input','.rf_pergunta'],['rf-leitor-input','.rf_leitor']].forEach(([el,k])=>{
+    const input=document.getElementById(el);
+    try{const v=localStorage.getItem(K+k);if(v)input.value=v;}catch(e){}
+    input.addEventListener('input',()=>{try{localStorage.setItem(K+k,input.value);}catch(e){}});
+  });
+  refreshRf();
   const ri=localStorage.getItem(K+'.rf');
   if(ri&&ri!=='0'){const chips=document.querySelectorAll('.chip');if(chips[ri])selRf(parseInt(ri),chips[ri]);}
   ['sp','na','rf'].forEach(id=>{

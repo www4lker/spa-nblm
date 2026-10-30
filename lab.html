@@ -537,6 +537,9 @@
 .medidor .barra i{position:absolute;top:0;bottom:0;left:0;background:currentColor}
 .medidor .numero{font-variant-numeric:tabular-nums;white-space:nowrap}
 .medidor.excesso{color:#b91c1c;font-weight:600}
+
+/* Campo em que se escreve: muda de cor quando o prompt final passa do teto. */
+textarea.campo-excesso,input.campo-excesso{border-color:#b91c1c!important;border-width:2px!important;background:#fef2f2!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
 </style>
     <style>:root {
   --suite-ink: #17243a;
@@ -676,7 +679,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 </script>
 <style id="oficina-unificado">
 /* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
-   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+   dossie, lab, studio e revisao; ao alterar, replicar nas seis páginas. */
 .nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
 .nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
 .nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
@@ -709,7 +712,29 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .suite{margin-top:1.5rem!important}
 .chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
 .hint{color:var(--suite-ink-2)!important}
+/* Interruptor "Responder no chat" (suite, dossie, lab, revisao) */
+.chat-env{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-ink-2,#3b4658);cursor:pointer;white-space:nowrap;user-select:none}
+.chat-env input{margin:0;width:14px;height:14px;accent-color:var(--suite-accent,#245b78);cursor:pointer}
+.chat-env[hidden]{display:none}
 </style>
+<script id="oficina-chat">
+/* Envelope "Responder no chat". Bloco idêntico em suite, dossie, lab e revisao;
+   ao alterar, replicar nas quatro. Prompt de destino chat sai precedido de um
+   aviso e cercado por ```xml, para o chat responder ele mesmo (com índices e sob
+   o system prompt) em vez de encaminhar a tarefa ao Studio. O interruptor começa
+   sempre ligado: o estado não é guardado no navegador. Se o prompt já contiver
+   três crases, a cerca ganha uma a mais, para não fechar no meio. */
+const OFICINA_AVISO_CHAT={
+  pt:'Responda aqui no chat, em texto, seguindo as instruções do bloco abaixo. Não crie artefato no Studio nem encaminhe a tarefa para ele.',
+  en:'Answer here in the chat, as text, following the instructions in the block below. Do not create a Studio artifact or hand the task over to it.'
+};
+function envelopeChat(texto,ligado,lang){
+  if(!ligado)return texto;
+  let cerca='```';
+  while(texto.includes(cerca))cerca+='`';
+  return (OFICINA_AVISO_CHAT[lang]||OFICINA_AVISO_CHAT.pt)+'\n\n'+cerca+'xml\n'+texto.trim()+'\n'+cerca;
+}
+</script>
 </head>
 
 <body>
@@ -781,6 +806,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
         <div class="card" id="outputSection" style="display:none;">
             <div class="output-header">
                 <h3 id="lbl-output">Generated Prompt</h3>
+                <label class="chat-env" id="chat-env" title="Acrescenta um aviso para o chat responder ele mesmo, sem delegar ao Studio, e cerca o prompt com ```xml"><input type="checkbox" id="chat-env-input" checked autocomplete="off" onchange="onChatEnv()"> <span id="chat-env-txt">Responder no chat</span></label>
                 <button class="copy-btn" onclick="copyToClipboard()">
                     <span id="copyIcon">📋</span><span id="copyText">Copy</span>
                 </button>
@@ -1302,6 +1328,7 @@ function comGuardrails(corpo,destino,opcoes){
             document.getElementById('btn-generate').textContent = t.btnGenerate;
             document.getElementById('lbl-output').textContent = t.lblOutput;
             document.getElementById('copyText').textContent = t.copy;
+            document.getElementById('chat-env-txt').textContent = lang === 'en' ? 'Answer in chat' : 'Responder no chat';
             document.getElementById('guardrailWarningText').textContent = t.guardrailWarningText;
             renderTemplates();
             // Re-apply typeValue for active template
@@ -1438,14 +1465,29 @@ function comGuardrails(corpo,destino,opcoes){
             // Atribuição falada sempre que a saída for áudio: o Modo Podcast, ou o
             // próprio template de Roteiro Podcast, que já nasce com destino Studio.
             const audio = podcastOn || activeTemplate === 'podcast';
-            return comGuardrails(corpo, destinoDe(), { epistemico: guardrailOn, falada: audio });
+            const destino = destinoDe();
+            return envelopeChat(comGuardrails(corpo, destino, { epistemico: guardrailOn, falada: audio }), destino === 'chat' && chatEnvLigado(), lang);
         }
 
         // ── Orçamento regressivo do Foco Específico ─────────────────────────────────────
+        /* Sinal no próprio campo: só marca o que tem texto. */
+        function marcarExcesso(campos, excesso) {
+            campos.forEach(c => c.classList.toggle('campo-excesso', excesso && !!c.value.trim()));
+        }
+
         function updateBudget() {
             const el = document.getElementById('focusBudget');
             if (!el) return;
-            el.innerHTML = medidorHtml(buildPrompt().length, destinoDe());
+            const n = buildPrompt().length;
+            el.innerHTML = medidorHtml(n, destinoDe());
+            marcarExcesso([document.getElementById('customFocus')], n > TETOS[destinoDe()]);
+            document.getElementById('chat-env').hidden = destinoDe() !== 'chat';
+        }
+
+        // ── Interruptor "Responder no chat" (sem o elemento, vale ligado) ───────────────
+        function chatEnvLigado() { const e = document.getElementById('chat-env-input'); return !e || e.checked; }
+        function onChatEnv() {
+            if (document.getElementById('outputSection').style.display === 'block') generatePrompt(); else updateBudget();
         }
 
         // ── Generate ──────────────────────────────────────────────────────────────────
@@ -1513,8 +1555,8 @@ function comGuardrails(corpo,destino,opcoes){
 })();
 </script>
 <script id="oficina-limpar">
-/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab e
-   studio. Apaga só o texto digitado nesta página (e sua cópia guardada no
+/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab,
+   studio e revisao. Apaga só o texto digitado nesta página (e sua cópia guardada no
    navegador); seleções de modo, template e chaves ficam como estão.
    Primeiro clique arma, segundo confirma; desarma sozinho em 3 s. */
 window.limparCampos=function(btn){

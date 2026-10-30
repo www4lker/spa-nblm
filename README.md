@@ -3,7 +3,7 @@
 Páginas que montam prompts para o [NotebookLM](https://notebooklm.google.com),
 pensadas para leitura acadêmica de fontes: livros, artigos, transcrições.
 
-Site: https://www4lker.github.io/spa-nblm/
+Site: https://nblm.walker.eco.br/
 
 ## O que é o NotebookLM, e por que ele pede prompts próprios
 

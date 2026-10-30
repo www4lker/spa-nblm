@@ -495,6 +495,9 @@
 .medidor .barra i{position:absolute;top:0;bottom:0;left:0;background:currentColor}
 .medidor .numero{font-variant-numeric:tabular-nums;white-space:nowrap}
 .medidor.excesso{color:#b91c1c;font-weight:600}
+
+/* Campo em que se escreve: muda de cor quando o prompt final passa do teto. */
+textarea.campo-excesso,input.campo-excesso{border-color:#b91c1c!important;border-width:2px!important;background:#fef2f2!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
 </style>
     <style>:root {
   --suite-ink: #17243a;
@@ -634,7 +637,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 </script>
 <style id="oficina-unificado">
 /* Oficina NLM — camada "papel e petróleo". Bloco idêntico em index, suite,
-   dossie, lab e studio; ao alterar, replicar nas cinco páginas. */
+   dossie, lab, studio e revisao; ao alterar, replicar nas seis páginas. */
 .nlm-nav{background:var(--suite-sheet,#fffdf8)!important;border-bottom:1px solid var(--suite-line,#d8d2c5)!important;font:500 13px/1 Inter,ui-sans-serif,system-ui,sans-serif!important;height:44px!important;gap:2px!important}
 .nlm-nav a{color:var(--suite-muted,#657186)!important;padding:13px 10px 11px!important;border-radius:0!important;border-bottom:2px solid transparent;background:none!important}
 .nlm-nav a:hover{color:var(--suite-ink,#17243a)!important}
@@ -667,7 +670,29 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [role="button"]:fo
 .suite{margin-top:1.5rem!important}
 .chip{--c:var(--suite-accent)!important;--ct:var(--suite-accent-soft)!important}
 .hint{color:var(--suite-ink-2)!important}
+/* Interruptor "Responder no chat" (suite, dossie, lab, revisao) */
+.chat-env{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 Inter,ui-sans-serif,system-ui,sans-serif;color:var(--suite-ink-2,#3b4658);cursor:pointer;white-space:nowrap;user-select:none}
+.chat-env input{margin:0;width:14px;height:14px;accent-color:var(--suite-accent,#245b78);cursor:pointer}
+.chat-env[hidden]{display:none}
 </style>
+<script id="oficina-chat">
+/* Envelope "Responder no chat". Bloco idêntico em suite, dossie, lab e revisao;
+   ao alterar, replicar nas quatro. Prompt de destino chat sai precedido de um
+   aviso e cercado por ```xml, para o chat responder ele mesmo (com índices e sob
+   o system prompt) em vez de encaminhar a tarefa ao Studio. O interruptor começa
+   sempre ligado: o estado não é guardado no navegador. Se o prompt já contiver
+   três crases, a cerca ganha uma a mais, para não fechar no meio. */
+const OFICINA_AVISO_CHAT={
+  pt:'Responda aqui no chat, em texto, seguindo as instruções do bloco abaixo. Não crie artefato no Studio nem encaminhe a tarefa para ele.',
+  en:'Answer here in the chat, as text, following the instructions in the block below. Do not create a Studio artifact or hand the task over to it.'
+};
+function envelopeChat(texto,ligado,lang){
+  if(!ligado)return texto;
+  let cerca='```';
+  while(texto.includes(cerca))cerca+='`';
+  return (OFICINA_AVISO_CHAT[lang]||OFICINA_AVISO_CHAT.pt)+'\n\n'+cerca+'xml\n'+texto.trim()+'\n'+cerca;
+}
+</script>
 </head>
 
 <body>
@@ -846,6 +871,7 @@ section{margin-bottom:2rem!important}
             <pre id="prompt-output"></pre>
             <div class="output-bar">
                 <div class="char-count" id="char-count"></div>
+                <label class="chat-env" id="chat-env" title="Acrescenta um aviso para o chat responder ele mesmo, sem delegar ao Studio, e cerca o prompt com ```xml"><input type="checkbox" id="chat-env-input" checked autocomplete="off" onchange="onChatEnv()"> <span id="chat-env-txt">Responder no chat</span></label>
                 <button class="copy" id="btn-copy" onclick="copyPrompt()">📋 <span id="copy-text">Copiar</span></button>
             </div>
         </div>
@@ -1336,7 +1362,8 @@ function buildPrompt(state=collectFormState()){
     buildModeBlock(state),buildFocusBlock(state),buildRestrictionsBlock(state),
     buildRigorBlock(state),buildPodcastBlock(state)
   ].filter(Boolean).join('\n\n');
-  return comGuardrails(tag(i18n[state.lang].prompt.raiz,corpo),destinoDe(state),{falada:state.podcastOn});
+  const destino=destinoDe(state);
+  return envelopeChat(comGuardrails(tag(i18n[state.lang].prompt.raiz,corpo),destino,{falada:state.podcastOn}),destino==='chat'&&chatEnvLigado(),state.lang);
 }
 
 function renderTabs(){
@@ -1422,10 +1449,22 @@ function togglePodcast(){
   invalidateOutput();updateBudget();
 }
 
+/* Sinal no próprio campo: só marca o que tem texto. */
+function marcarExcesso(campos,excesso){campos.forEach(c=>c.classList.toggle('campo-excesso',excesso&&!!c.value.trim()))}
+
 function updateBudget(){
   const state=collectFormState();
   const destino=destinoDe(state);
-  document.getElementById('budget-line').innerHTML=medidorHtml(buildPrompt(state).length,destino);
+  const n=buildPrompt(state).length;
+  document.getElementById('budget-line').innerHTML=medidorHtml(n,destino);
+  marcarExcesso(['foco','restricoes'].map(id=>document.getElementById(id)),n>TETOS[destino]);
+  document.getElementById('chat-env').hidden=destino!=='chat';
+}
+
+/* Interruptor "Responder no chat": sem o elemento, vale ligado. */
+function chatEnvLigado(){const e=document.getElementById('chat-env-input');return !e||e.checked}
+function onChatEnv(){
+  if(document.getElementById('output-section').style.display==='block')generatePrompt();else updateBudget();
 }
 
 function generatePrompt(){
@@ -1482,6 +1521,7 @@ function applyStrings(){
     'btn-generate':t.btnGenerate,'copy-text':t.copy,'footer-note':t.footerNote
   };
   Object.entries(values).forEach(([id,value])=>document.getElementById(id).textContent=value);
+  document.getElementById('chat-env-txt').textContent=lang==='en'?'Answer in chat':'Responder no chat';
   document.getElementById('selection-notice').innerHTML=t.selectionNotice;
   document.getElementById('foco').placeholder=t.focoPlaceholder;
   document.getElementById('restricoes').placeholder=t.restricoesPlaceholder;
@@ -1533,8 +1573,8 @@ applyStrings();
 })();
 </script>
 <script id="oficina-limpar">
-/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab e
-   studio. Apaga só o texto digitado nesta página (e sua cópia guardada no
+/* Botão "Limpar campos" da barra de navegação. Idêntico em dossie, lab,
+   studio e revisao. Apaga só o texto digitado nesta página (e sua cópia guardada no
    navegador); seleções de modo, template e chaves ficam como estão.
    Primeiro clique arma, segundo confirma; desarma sozinho em 3 s. */
 window.limparCampos=function(btn){
