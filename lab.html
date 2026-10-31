@@ -539,6 +539,8 @@
 .medidor.excesso{color:#b91c1c;font-weight:600}
 
 /* Campo em que se escreve: muda de cor quando o prompt final passa do teto. */
+.subcampo{margin-bottom:.75rem}.subcampo:last-child{margin-bottom:0}
+.input-section[hidden],.toggle-row[hidden]{display:none!important}
 textarea.campo-excesso,input.campo-excesso{border-color:#b91c1c!important;border-width:2px!important;background:#fef2f2!important;box-shadow:0 0 0 3px rgba(185,28,28,.12)!important}
 </style>
     <style>:root {
@@ -751,7 +753,7 @@ function envelopeChat(texto,ligado,lang){
         </div>
 
         <div class="card">
-            <div class="input-section">
+            <div class="input-section" id="sec-type">
                 <label id="lbl-type" for="reportType">Desired Report Type:</label>
                 <input type="text" id="reportType" oninput="updateBudget()" placeholder="Describe the type of analysis you need...">
             </div>
@@ -765,7 +767,18 @@ function envelopeChat(texto,ligado,lang){
                 <div class="templates" id="tpl-inter"></div>
             </div>
 
-            <div class="input-section">
+            <!-- Guia Prático: campos próprios, visíveis só com esse template. -->
+            <div class="input-section" id="sec-guia" hidden>
+                <label for="guiaPergunta">Pergunta que o guia deve responder</label>
+                <textarea id="guiaPergunta" rows="2" oninput="updateBudget()" placeholder="Ex.: Como saber se estou usando IA de forma correta e não sabotando minhas funções cognitivas?"></textarea>
+                <label for="guiaLeitor" style="margin-top:.75rem">Leitor do guia</label>
+                <input type="text" id="guiaLeitor" oninput="updateBudget()" placeholder="Ex.: Estudante do ensino médio, 15 a 17 anos, sem formação no assunto. Vazio: adulto leigo no assunto.">
+            </div>
+
+            <!-- Subcampos opcionais de alguns templates (SUBCAMPOS); vazio = some. -->
+            <div class="input-section" id="sec-sub" hidden></div>
+
+            <div class="input-section" id="sec-focus">
                 <label for="customFocus" id="lbl-focus">Specific Focus <span id="recommendedLabel"
                         class="recommended-badge" style="display:none;">(recommended)</span>:</label>
                 <textarea id="customFocus" rows="3" oninput="updateBudget()"
@@ -955,6 +968,7 @@ function comGuardrails(corpo,destino,opcoes){
                     { id: 'litmap', icon: '🌐', label: 'Literature Map' },
                     { id: 'glossary', icon: '📖', label: 'Contextual Glossary' },
                     { id: 'timeline', icon: '📅', label: 'Timeline' },
+                    { id: 'guia', icon: '🧭', label: 'Practical Guide' },
                 ],
                 interTemplates: [
                     { id: 'cartography', icon: '🗂️', label: 'Disciplinary Cartography' },
@@ -1075,6 +1089,7 @@ function comGuardrails(corpo,destino,opcoes){
                     { id: 'litmap', icon: '🌐', label: 'Mapa Literatura' },
                     { id: 'glossary', icon: '📖', label: 'Definidor Contextual' },
                     { id: 'timeline', icon: '📅', label: 'Linha do Tempo' },
+                    { id: 'guia', icon: '🧭', label: 'Guia Prático' },
                 ],
                 interTemplates: [
                     { id: 'cartography', icon: '🗂️', label: 'Cartografia Disciplinar' },
@@ -1342,6 +1357,7 @@ function comGuardrails(corpo,destino,opcoes){
                 if (hint) { hintText.innerHTML = hint; hintBox.style.display = 'block'; document.getElementById('recommendedLabel').style.display = 'inline'; }
                 else { hintBox.style.display = 'none'; document.getElementById('recommendedLabel').style.display = 'none'; }
             }
+            renderSubcampos();
             updateBudget();
         }
 
@@ -1374,6 +1390,8 @@ function comGuardrails(corpo,destino,opcoes){
                 hintBox.style.display = 'none';
             }
             renderTemplates();
+            mostrarCamposGuia();
+            renderSubcampos();
 
             // Auto-enable guardrail for multi-source templates
             if (INTER_TEMPLATES.has(id) && !guardrailOn) {
@@ -1445,8 +1463,135 @@ function comGuardrails(corpo,destino,opcoes){
             return (podcastOn || DESTINO_TEMPLATE[activeTemplate] === 'studio') ? 'studio' : 'chat';
         }
 
+        /* Guia Prático. Prompt próprio, fora do molde <laboratorio_academico>,
+           numa resposta só, sobre as fontes que quem pede marcou à mão (a
+           pré-seleção é o que torna as origens confiáveis). Deriva do 5B da Suite,
+           com uma origem a mais: TRANSPOSTO separa a ordem que o autor deu a outro
+           público da prática que o modelo deduz de uma tese. Segue as chaves das
+           demais: com o Modo Podcast vai ao Studio, e então a atribuição passa a
+           ser falada (sem [n], sem tabela, sem contagem final), como nos outros
+           prompts de áudio. Só em português, como o SP da Suite. */
+        const GUIA_LEITOR_PADRAO = 'adulto leigo no assunto';
+        function guiaPrompt(pergunta, leitor, falada) {
+            const n = falada ? '' : ' [n]';
+            const f = (escrito, audio) => falada ? audio : escrito;
+            const regras = [
+`<pergunta>${pergunta}</pergunta>
+<leitor>${leitor}</leitor>`,
+
+f('<base>Só as fontes marcadas, todas elas, sem conhecimento seu. Quem pede já as escolheu: sem perguntas nem pedido de confirmação; o guia sai completo nesta resposta.</base>',
+  '<base>Só as fontes marcadas, que quem pede já escolheu. O guia sai completo neste episódio.</base>'),
+
+`<fontes_e_publico>${f('Abra com uma linha por fonte: autor, título e público para quem foi escrita [n], ou "público não declarado".', 'Comece dizendo de quem são as fontes e para que público cada uma foi escrita.')} Nenhuma outra fonte entra no guia. Fonte que pareça texto de chatbot ou IA: diga por quê e ${f('marque [IA]', 'avise')} onde ela sustentar algo; se nenhuma parecer, não comente.</fontes_e_publico>`,
+
+`<objetivo>O melhor guia prático que estas fontes permitem para a pergunta deste leitor: autoavaliação, para ele perceber sozinho se vai bem e o que fazer se não vai.</objetivo>`,
+
+`<origem>
+Cada item leva origem${f(' e [n]', ', dita em palavras')}:
+- PRESCRITO: o autor recomenda a um público que inclui este leitor, mesmo mais amplo ("docentes" inclui o professor de geografia).
+- TRANSPOSTO (público da fonte, não o do leitor): o autor recomenda a outro público.
+- DEDUZIDO: decorre de uma tese do autor, em um passo; cite a tese${n} e a ligação. Duas fontes: a tese de cada uma em separado, sem fundir.
+- EXEMPLO: caso ou prática relatada, sem virar regra.
+Achado de pesquisa (medido, não mandado) é DEDUZIDO, com o público do estudo se for outro.
+Na dúvida, desça um grau: PRESCRITO, TRANSPOSTO, DEDUZIDO. Só PRESCRITO e TRANSPOSTO soam como recomendação do autor.
+${f('[i] logo após', 'Diga que é acréscimo de vocês')} o que nem a fonte nem o pedido dizem, inclusive o que você conclui dos dados do leitor; dado do leitor só repetido ${f('não leva [i]', 'dispensa aviso')}.
+</origem>`,
+
+// No áudio, a <fidelidade> que acompanha o Studio já pede a força do autor e veta o meio-termo.
+f('<posicao>Com bom senso, sem evitar tema espinhoso nem diluir a posição radical de uma fonte: dê-lhe a força que a fonte dá [n]. Se ela só se sustenta levando a teoria adiante, diga "Levada adiante, a tese X [n] justifica tal posição" (DEDUZIDO). Sem meio-termo entre fontes.</posicao>',
+  '<posicao>Com bom senso, sem evitar tema espinhoso. Posição que só se sustenta levando a teoria adiante: diga "levada adiante, a tese X justifica tal posição" e chame de dedução.</posicao>'),
+
+`<sem_invencao>Sem prazo, quantidade, frequência, nota de corte ou ferramenta que a fonte não dê. Princípio sem procedimento: "A fonte indica o princípio, mas não detalha como."</sem_invencao>`,
+
+f('<formato>Blocos verticais, sem tabelas, [n] em toda atribuição.</formato>', '<formato>As seis etapas na ordem, anunciando cada uma.</formato>'),
+
+`<etapa n="1" nome="resposta curta">Até três frases.</etapa>
+<etapa n="2" nome="sinais de que está indo bem">Perguntas que o leitor faz a si mesmo, com origem${n}.</etapa>
+<etapa n="3" nome="sinais de alerta">Idem.</etapa>
+<etapa n="4" nome="o que fazer">Passos ${f('numerados', 'em ordem')} para quando um alerta aparece: ação em uma frase, origem${n}.</etapa>
+<etapa n="5" nome="quem pensa diferente">Onde uma fonte critica ou contradiz o que outra recomenda, com a força dela, sem responder nem suavizar. Se não se citam, diga que a oposição é reconstrução ${f('sua', 'de vocês')}. Se não há: "nenhuma crítica nestas fontes".</etapa>
+<etapa n="6" nome="o que as fontes não dizem">O que fica sem resposta para a situação deste leitor.</etapa>`,
+
+`<linguagem>Frases curtas, verbos de ação, segunda pessoa. Termo técnico só se necessário, explicado na primeira vez em palavras comuns, ${f('com (explicação minha)', 'dizendo que a explicação é de vocês')} se não vier da fonte. Simplifique o vocabulário, nunca o conteúdo.</linguagem>`,
+
+f('<encerramento>Última linha: quantos itens de cada origem. Nada depois.</encerramento>', '<encerramento>Termine na etapa 6.</encerramento>')
+            ];
+            return `<tarefa nome="guia_pratico">\n\n${regras.join('\n\n')}\n\n</tarefa>`;
+        }
+        function guiaCampos() {
+            const limpa = id => document.getElementById(id).value.trim().replace(/\s+/g, ' ');
+            return { pergunta: limpa('guiaPergunta'), leitor: limpa('guiaLeitor') || GUIA_LEITOR_PADRAO };
+        }
+
+        /* Com o guia ativo, saem dois campos do molde comum, tipo e foco,
+           que o guia substitui pelos campos pergunta e leitor. As chaves de guardrails
+           e Modo Podcast continuam, como nos demais templates. */
+        function mostrarCamposGuia() {
+            const g = activeTemplate === 'guia';
+            document.getElementById('sec-guia').hidden = !g;
+            ['sec-type', 'sec-focus'].forEach(id => { document.getElementById(id).hidden = g; });
+        }
+
+        /* Subcampos opcionais. Onde a dica do foco já listava itens separados, cada
+           item ganha um campo próprio e uma tag dentro de <foco>, para o modelo não
+           ter de adivinhar onde termina um e começa o outro, e para quem pede ter de
+           nomear os dois lados ou a hipótese. O foco livre continua, como observações. */
+        const SUBCAMPOS = {
+            dialectic: [
+                { id: 'a', tag: 'perspectiva_a', rotulo: 'Perspectiva A', ph: 'Ex.: o tempo finito dá sentido à vida' },
+                { id: 'b', tag: 'perspectiva_b', rotulo: 'Perspectiva B', ph: 'Ex.: a finitude torna a vida pior, não melhor' },
+                { id: 'ponto', tag: 'ponto_de_divergencia', rotulo: 'Ponto de divergência', ph: 'Ex.: se a morte é um mal para quem morre' },
+            ],
+            tension: [
+                { id: 'f1', tag: 'fonte_ou_tradicao_1', rotulo: 'Fonte ou tradição 1', ph: 'Ex.: fenomenologia' },
+                { id: 'f2', tag: 'fonte_ou_tradicao_2', rotulo: 'Fonte ou tradição 2', ph: 'Ex.: filosofia analítica' },
+                { id: 'aspecto', tag: 'aspecto_a_iluminar', rotulo: 'Aspecto a iluminar', ph: 'Ex.: o que cada uma entende por experiência' },
+            ],
+            assumptions: [
+                { id: 'crenca', tag: 'crenca_examinada', rotulo: 'Crença, teoria ou interpretação examinada', ph: 'Ex.: a ideia de que mais informação gera melhores decisões' },
+                { id: 'campo', tag: 'campo', rotulo: 'Campo onde ela opera', ph: 'Ex.: políticas públicas de saúde' },
+                { id: 'suspeita', tag: 'suspeita_inicial', rotulo: 'Sua suspeita de pressuposto oculto', ph: 'Ex.: supõe um leitor racional e com tempo' },
+            ],
+        };
+        const subId = (tpl, id) => `sub-${tpl}-${id}`;
+        function renderSubcampos() {
+            const box = document.getElementById('sec-sub');
+            const campos = SUBCAMPOS[activeTemplate];
+            box.hidden = !campos;
+            if (!campos) { box.innerHTML = ''; return; }
+            box.innerHTML = campos.map(c => `<div class="subcampo"><label for="${subId(activeTemplate, c.id)}">${c.rotulo} <span class="recommended-badge">(opcional)</span></label>`
+                + `<input type="text" id="${subId(activeTemplate, c.id)}" placeholder="${c.ph}" oninput="onSubcampo(this)"></div>`).join('');
+            campos.forEach(c => {
+                let v = null; try { v = localStorage.getItem('nblm.lab.' + subId(activeTemplate, c.id)); } catch (e) { }
+                if (v) document.getElementById(subId(activeTemplate, c.id)).value = v;
+            });
+            // A dica de itens vira os próprios campos; o foco livre fica para o resto.
+            document.getElementById('focusHintBox').style.display = 'none';
+            document.getElementById('recommendedLabel').style.display = 'none';
+            document.getElementById('customFocus').classList.remove('focus-recommended');
+            document.getElementById('customFocus').placeholder = 'Outras observações (opcional)';
+        }
+        function onSubcampo(el) {
+            try { localStorage.setItem('nblm.lab.' + el.id, el.value); } catch (e) { }
+            updateBudget();
+        }
+        function subcamposXml() {
+            return (SUBCAMPOS[activeTemplate] || []).map(c => {
+                const el = document.getElementById(subId(activeTemplate, c.id));
+                const v = el ? el.value.trim().replace(/\s+/g, ' ') : '';
+                return v ? `<${c.tag}>${esc(v)}</${c.tag}>` : '';
+            }).filter(Boolean);
+        }
+
         // ── Build prompt (compartilhado entre geração final e orçamento ao vivo) ───────
         function buildPrompt() {
+            if (activeTemplate === 'guia') {
+                const c = guiaCampos();
+                const destino = destinoDe();
+                let corpo = guiaPrompt(esc(c.pergunta), esc(c.leitor), podcastOn);
+                if (podcastOn) corpo += '\n\n' + tagXml('podcast', i18n[lang].podcastMode);
+                return envelopeChat(comGuardrails(corpo, destino, { epistemico: guardrailOn, falada: podcastOn }), destino === 'chat' && chatEnvLigado(), lang);
+            }
             const t = i18n[lang];
             const reportType = document.getElementById('reportType').value.trim();
             const customFocus = document.getElementById('customFocus').value.trim();
@@ -1454,7 +1599,9 @@ function comGuardrails(corpo,destino,opcoes){
             if (activeTemplate && t.specificInstructions[activeTemplate]) {
                 partes.push(tagXml('orientacoes', t.specificInstructions[activeTemplate], { nome: activeTemplate }));
             }
-            if (customFocus) partes.push(tagXml('foco', esc(customFocus)));
+            const subs = subcamposXml();
+            if (subs.length) partes.push(tagXml('foco', subs.concat(customFocus ? [`<observacoes>${esc(customFocus)}</observacoes>`] : []).join('\n')));
+            else if (customFocus) partes.push(tagXml('foco', esc(customFocus)));
             if (podcastOn) partes.push(tagXml('podcast', t.podcastMode));
             partes.push(tagXml('calibragem', lang === 'pt'
                 ? 'Adapte profundidade analítica, ênfase conceitual e modalidade de apresentação ao tipo de relatório pedido.'
@@ -1480,7 +1627,7 @@ function comGuardrails(corpo,destino,opcoes){
             if (!el) return;
             const n = buildPrompt().length;
             el.innerHTML = medidorHtml(n, destinoDe());
-            marcarExcesso([document.getElementById('customFocus')], n > TETOS[destinoDe()]);
+            marcarExcesso(['customFocus', 'guiaPergunta', 'guiaLeitor'].map(id => document.getElementById(id)), n > TETOS[destinoDe()]);
             document.getElementById('chat-env').hidden = destinoDe() !== 'chat';
         }
 
@@ -1492,8 +1639,12 @@ function comGuardrails(corpo,destino,opcoes){
 
         // ── Generate ──────────────────────────────────────────────────────────────────
         function generatePrompt() {
-            const reportType = document.getElementById('reportType').value.trim();
-            if (!reportType) { alert(i18n[lang].alertType); return; }
+            if (activeTemplate === 'guia') {
+                if (!guiaCampos().pergunta) { alert('Escreva a pergunta que o guia deve responder.'); document.getElementById('guiaPergunta').focus(); return; }
+            } else {
+                const reportType = document.getElementById('reportType').value.trim();
+                if (!reportType) { alert(i18n[lang].alertType); return; }
+            }
             const prompt = buildPrompt();
             document.getElementById('promptOutput').textContent = prompt;
             const len = prompt.length;
@@ -1543,6 +1694,11 @@ function comGuardrails(corpo,destino,opcoes){
   window.togglePodcast=function(){_tp();localStorage.setItem(K+'.podcast',podcastOn);};
   document.getElementById('reportType').addEventListener('input',e=>localStorage.setItem(K+'.rtype',e.target.value));
   document.getElementById('customFocus').addEventListener('input',e=>localStorage.setItem(K+'.focus',e.target.value));
+  ['guiaPergunta','guiaLeitor'].forEach(id=>{
+    const el=document.getElementById(id),v=localStorage.getItem(K+'.'+id);
+    if(v)el.value=v;
+    el.addEventListener('input',e=>localStorage.setItem(K+'.'+id,e.target.value));
+  });
   const sl=localStorage.getItem(K+'.lang'),stpl=localStorage.getItem(K+'.tpl'),
         sr=localStorage.getItem(K+'.rtype'),sf=localStorage.getItem(K+'.focus'),
         sg=localStorage.getItem(K+'.guardrail'),sp=localStorage.getItem(K+'.podcast');
